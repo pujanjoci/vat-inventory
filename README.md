@@ -1,4 +1,4 @@
-# Ganesh Tel Mill - VAT & Inventory Portal
+# Vat & Inventory - Ganesh Tel Mill
 
 A professional inventory and VAT management system built with Next.js 14 (App Router), Tailwind CSS, and Google Sheets.
 

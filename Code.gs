@@ -122,7 +122,7 @@ function jsonResponse(data) {
  */
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
-  ui.createMenu('📦 Ganesh Tel Portal')
+  ui.createMenu('📦 Vat & Inventory')
     .addItem('Initialize Tabs', 'initializeSheets')
     .addItem('Rebuild Stock Journal', 'rebuildStockJournalManual')
     .addToUi();

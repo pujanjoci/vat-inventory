@@ -66,8 +66,8 @@ export const Sidebar = () => {
       <div className="p-6 flex items-center gap-3">
         <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">G</div>
         <div className="flex flex-col">
-          <span className="text-white font-bold text-sm tracking-tight">GANESH TEL MILL</span>
-          <span className="text-[10px] text-slate-500 font-medium tracking-widest uppercase">Inventory Portal</span>
+          <span className="text-white font-bold text-sm tracking-tight uppercase">Vat & Inventory</span>
+          <span className="text-[10px] text-slate-500 font-medium tracking-widest uppercase">Ganesh Tel Mill</span>
         </div>
       </div>
 

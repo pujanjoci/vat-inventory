@@ -19,8 +19,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ganesh Tel Mill | VAT & Inventory Management",
-  description: "Professional VAT and Inventory management portal for Ganesh Tel Mill.",
+  title: "Vat & Inventory | Ganesh Tel Mill",
+  description: "Vat & Inventory management portal for Ganesh Tel Mill.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
