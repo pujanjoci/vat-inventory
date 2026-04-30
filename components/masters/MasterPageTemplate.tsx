@@ -4,12 +4,14 @@ import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/Button';
-import { Table } from '@/components/ui/Table';
+import { DataTable } from '@/components/ui/DataTable';
 import { Modal } from '@/components/ui/Modal';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Filter, Download } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
 
 interface MasterPageTemplateProps {
   title: string;
+  subtitle?: string;
   description: string;
   columns: any[];
   data: any[];
@@ -18,6 +20,7 @@ interface MasterPageTemplateProps {
 
 export const MasterPageTemplate = ({
   title,
+  subtitle,
   description,
   columns,
   data,
@@ -25,6 +28,7 @@ export const MasterPageTemplate = ({
 }: MasterPageTemplateProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Enhancement: Inject Actions column automatically with premium styling
   const tableColumns = [
     ...columns,
     {
@@ -32,39 +36,57 @@ export const MasterPageTemplate = ({
       accessor: 'actions',
       align: 'right' as const,
       render: (item: any) => (
-        <div className="flex items-center justify-end gap-2">
-          <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
-            <Edit2 className="w-4 h-4" />
+        <div className="flex items-center justify-end gap-1">
+          <button className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-accent-light)] rounded-lg transition-all" title="Edit entry">
+            <Edit2 className="w-3.5 h-3.5" />
           </button>
-          <button className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all">
-            <Trash2 className="w-4 h-4" />
+          <button className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-danger)] hover:bg-rose-50 rounded-lg transition-all" title="Delete entry">
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
       )
     }
   ];
 
+  const mainTitle = title.split(' ')[0];
+
   return (
     <AppLayout>
       <PageHeader 
         title={title} 
-        description={description}
-        action={
-          <Button onClick={() => setIsModalOpen(true)} className="gap-2">
-            <Plus className="w-4 h-4" /> Add New
-          </Button>
+        subtitle={subtitle || description}
+        breadcrumbs={[{ label: 'Masters' }, { label: title }]}
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm">
+              <Download className="w-3.5 h-3.5 mr-2" />
+              Export
+            </Button>
+            <Button onClick={() => setIsModalOpen(true)} className="shadow-lg" size="sm">
+              <Plus className="w-4 h-4 mr-2" /> 
+              Add {mainTitle}
+            </Button>
+          </div>
         }
       />
 
-      <Table columns={tableColumns} data={data} />
+      <div className="space-y-6">
+        <DataTable 
+          columns={tableColumns} 
+          data={data} 
+          searchPlaceholder={`Search ${title.toLowerCase()}...`}
+        />
+      </div>
 
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        title={`Add New ${title.split(' ')[0]}`}
+        title={`Register New ${mainTitle}`}
         size="lg"
       >
-        {formComponent}
+        <div className="py-2">
+          {formComponent}
+        </div>
       </Modal>
     </AppLayout>
   );

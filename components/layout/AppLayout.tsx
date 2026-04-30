@@ -3,27 +3,29 @@
 import React from 'react';
 import { Sidebar } from './Sidebar';
 import { Navbar } from './Navbar';
-import { useApp } from '@/lib/context/AppContext';
-import { Toast } from '../ui/Toast';
+import { useAppContext } from '@/lib/context/AppContext';
+import { Badge } from '../ui/Badge';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export const AppLayout = ({ children }: { children: React.ReactNode }) => {
-  const { toasts } = useApp();
+  const { isLoading, sidebarCollapsed } = useAppContext();
 
   return (
     <div className="min-h-screen bg-slate-50 font-body">
       <Sidebar />
-      <div className="flex flex-col min-h-screen">
+      <div className={cn(
+        "flex flex-col min-h-screen transition-all duration-300",
+        sidebarCollapsed ? "ml-20" : "ml-64"
+      )}>
         <Navbar />
-        <main className="flex-1 p-8 ml-64 overflow-x-hidden">
+        <main className="flex-1 p-8 overflow-x-hidden">
           {children}
         </main>
-      </div>
-      
-      {/* Toast Portal */}
-      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
-        {toasts.map((toast) => (
-          <Toast key={toast.id} message={toast.message} type={toast.type} />
-        ))}
       </div>
     </div>
   );

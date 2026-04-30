@@ -5,13 +5,17 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 import { 
   ShoppingCart, 
   TrendingUp, 
   CreditCard, 
   Package, 
   Layers,
-  ArrowUpRight
+  ArrowUpRight,
+  Download,
+  Calendar,
+  Filter
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -21,114 +25,250 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   Legend
 } from 'recharts';
-import { formatAmount } from '@/lib/calculations';
+import { formatCurrency } from '@/lib/format';
+import { Button } from '@/components/ui/Button';
 
-const salesData = [
-  { month: 'Shrawan', sales: 450000, purchases: 380000 },
-  { month: 'Bhadra', sales: 520000, purchases: 410000 },
-  { month: 'Ashwin', sales: 610000, purchases: 480000 },
-  { month: 'Kartik', sales: 580000, purchases: 420000 },
-  { month: 'Mangsir', sales: 630000, purchases: 510000 },
-  { month: 'Poush', sales: 710000, purchases: 550000 },
+const performanceData = [
+  { month: 'Shrawan', sales: 450000, purchases: 380000, margin: 15 },
+  { month: 'Bhadra', sales: 520000, purchases: 410000, margin: 21 },
+  { month: 'Ashwin', sales: 610000, purchases: 480000, margin: 27 },
+  { month: 'Kartik', sales: 580000, purchases: 420000, margin: 28 },
+  { month: 'Mangsir', sales: 630000, purchases: 510000, margin: 19 },
+  { month: 'Poush', sales: 710000, purchases: 550000, margin: 22 },
 ];
 
-const productionData = [
-  { month: 'Shrawan', ltrs: 12000 },
-  { month: 'Bhadra', ltrs: 15000 },
-  { month: 'Ashwin', ltrs: 18500 },
-  { month: 'Kartik', ltrs: 16000 },
-  { month: 'Mangsir', ltrs: 21000 },
-  { month: 'Poush', ltrs: 24000 },
-];
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white border border-[var(--color-border)] rounded-xl p-3 shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+        <p className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex items-center justify-between gap-4 mb-1 last:mb-0">
+            <span className="text-xs font-medium text-[var(--color-text-secondary)]">{entry.name}:</span>
+            <span className="text-sm font-mono font-bold text-[var(--color-text-primary)]">
+              {entry.name === 'Margin' ? `${entry.value}%` : `Rs. ${entry.value.toLocaleString()}`}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function DashboardPage() {
   return (
     <AppLayout>
       <PageHeader 
-        title="Welcome Back, Admin" 
-        description="Here is what is happening at Ganesh Tel Mill today."
+        title="Business Overview" 
+        subtitle="Real-time performance metrics and inventory status"
+        breadcrumbs={[{ label: 'Overview' }, { label: 'Dashboard' }]}
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm">
+              <Calendar className="w-3.5 h-3.5 mr-2" />
+              FY 2081-82
+            </Button>
+            <Button variant="primary" size="sm">
+              <Download className="w-3.5 h-3.5 mr-2" />
+              Export Report
+            </Button>
+          </div>
+        }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-        <MetricCard 
-          title="Total Purchases" 
-          value={`Rs. ${formatAmount(2456780)}`}
-          icon={<ShoppingCart className="w-6 h-6" />}
-          trend={{ value: 12.5, isPositive: true }}
-        />
-        <MetricCard 
-          title="Total Sales" 
-          value={`Rs. ${formatAmount(3120450)}`}
-          icon={<TrendingUp className="w-6 h-6" />}
-          trend={{ value: 8.2, isPositive: true }}
-          color="emerald"
-        />
-        <MetricCard 
-          title="VAT Dues" 
-          value={`Rs. ${formatAmount(86250)}`}
-          icon={<CreditCard className="w-6 h-6" />}
-          color="rose"
-        />
-        <MetricCard 
-          title="RM Stock Value" 
-          value={`Rs. ${formatAmount(1240500)}`}
-          icon={<Package className="w-6 h-6" />}
-          color="amber"
-        />
-        <MetricCard 
-          title="FG Stock Value" 
-          value={`Rs. ${formatAmount(850600)}`}
-          icon={<Layers className="w-6 h-6" />}
-          color="indigo"
-        />
-        <MetricCard 
-          title="Gross Profit" 
-          value={`Rs. ${formatAmount(663670)}`}
-          icon={<ArrowUpRight className="w-6 h-6" />}
-          color="emerald"
-        />
-      </div>
+      {/* Bento Layout Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+        {/* Main Performance Chart - spans 8 cols */}
+        <div className="lg:col-span-8">
+          <Card title="Revenue & Expenditure Trends" className="h-full">
+            <div className="h-[350px] w-full mt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={performanceData}>
+                  <defs>
+                    <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--color-accent)" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="var(--color-accent)" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
+                  <XAxis 
+                    dataKey="month" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} 
+                    dy={10} 
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 11, fill: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }} 
+                    tickFormatter={(val) => `Rs.${val/1000}k`} 
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend verticalAlign="top" height={36} iconType="circle" />
+                  <Area 
+                    type="monotone" 
+                    dataKey="sales" 
+                    name="Gross Sales" 
+                    stroke="var(--color-accent)" 
+                    fillOpacity={1} 
+                    fill="url(#colorSales)" 
+                    strokeWidth={3}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="purchases" 
+                    name="Purchases" 
+                    stroke="#94a3b8" 
+                    fillOpacity={0} 
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card title="Monthly Sales vs Purchases">
-          <div className="h-[350px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={salesData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => `Rs.${val/1000}k`} />
-                <Tooltip 
-                  cursor={{ fill: '#f8fafc' }}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                />
-                <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                <Bar dataKey="sales" name="Sales" fill="#4f46e5" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="purchases" name="Purchases" fill="#94a3b8" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
+        {/* VAT Status Sidebar - spans 4 cols */}
+        <div className="lg:col-span-4 flex flex-col gap-6">
+          <Card title="VAT Status" className="h-full flex flex-col">
+            <div className="flex-1 flex flex-col justify-center py-4">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Current Liability</p>
+                  <p className="text-3xl font-display font-bold text-[var(--color-danger)] leading-none">Rs. {formatCurrency(86250)}</p>
+                </div>
+                <Badge variant="PRELIMINARY">FY 2081</Badge>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-[var(--color-text-secondary)] flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-[var(--color-accent)]" /> Output VAT
+                  </span>
+                  <span className="font-mono font-semibold">Rs. 324,500.00</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-[var(--color-text-secondary)] flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-slate-400" /> Input VAT
+                  </span>
+                  <span className="font-mono font-semibold">Rs. 238,250.00</span>
+                </div>
+                <div className="h-px bg-[var(--color-border)] my-2" />
+                <div className="flex items-center justify-between text-sm font-bold">
+                  <span className="text-[var(--color-text-primary)]">Net Payable</span>
+                  <span className="font-mono text-[var(--color-danger)]">Rs. 86,250.00</span>
+                </div>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" className="w-full mt-4">View VAT Summary</Button>
+          </Card>
+        </div>
 
-        <Card title="Production Output (Ltrs)">
-          <div className="h-[350px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={productionData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                />
-                <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                <Line type="monotone" dataKey="ltrs" name="Output (Ltrs)" stroke="#059669" strokeWidth={3} dot={{ r: 4, fill: '#059669', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
+        {/* 4 KPI Cards - each spans 3 cols in desktop */}
+        <div className="lg:col-span-3">
+          <MetricCard 
+            title="Raw Material Stock" 
+            value={formatCurrency(1240500)}
+            icon={Package}
+            trend={12.5}
+          />
+        </div>
+        <div className="lg:col-span-3">
+          <MetricCard 
+            title="Finished Goods" 
+            value={formatCurrency(850600)}
+            icon={Layers}
+            trend={-2.4}
+          />
+        </div>
+        <div className="lg:col-span-3">
+          <MetricCard 
+            title="Gross Profit" 
+            value={formatCurrency(663670)}
+            icon={ArrowUpRight}
+            trend={8.2}
+          />
+        </div>
+        <div className="lg:col-span-3">
+          <MetricCard 
+            title="Total Parties" 
+            value="142"
+            icon={Filter}
+          />
+        </div>
+
+        {/* Row 3 - Recent Transactions & Activity */}
+        <div className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card title="Recent Sales Transactions" headerAction={<Button variant="ghost" size="sm">View All</Button>}>
+            <div className="overflow-x-auto -mx-6">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-raised)]">
+                    <th className="text-left px-6 py-3 text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Bill No</th>
+                    <th className="text-left px-6 py-3 text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Customer</th>
+                    <th className="text-right px-6 py-3 text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Amount</th>
+                    <th className="text-center px-6 py-3 text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--color-border)]">
+                  {[
+                    { id: 'SL-001', name: 'Global Traders', amount: 45600, status: 'Yes' },
+                    { id: 'SL-002', name: 'Everest Oil', amount: 128400, status: 'Yes' },
+                    { id: 'SL-003', name: 'Annapurna Store', amount: 32100, status: 'No' },
+                  ].map((row, i) => (
+                    <tr key={i} className="hover:bg-[var(--color-surface-raised)] transition-colors">
+                      <td className="px-6 py-4 font-medium text-[var(--color-text-primary)]">{row.id}</td>
+                      <td className="px-6 py-4 text-[var(--color-text-secondary)]">{row.name}</td>
+                      <td className="px-6 py-4 text-right font-mono tabular-nums">Rs. {formatCurrency(row.amount)}</td>
+                      <td className="px-6 py-4 text-center">
+                        <Badge variant={row.status === 'Yes' ? 'Taxable' : 'No'}>{row.status === 'Yes' ? 'Taxable' : 'Exempt'}</Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          <Card title="Production Output summary">
+             <div className="space-y-6">
+               <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-[var(--color-text-secondary)]">Mustard Oil</span>
+                    <span className="text-sm font-bold">12,450 Ltrs</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div className="bg-[var(--color-accent)] h-full rounded-full" style={{ width: '75%' }} />
+                  </div>
+               </div>
+               <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-[var(--color-text-secondary)]">Refined Oil</span>
+                    <span className="text-sm font-bold">8,200 Ltrs</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: '60%' }} />
+                  </div>
+               </div>
+               <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-[var(--color-text-secondary)]">By-products (Cake)</span>
+                    <span className="text-sm font-bold">4,120 KG</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div className="bg-amber-500 h-full rounded-full" style={{ width: '45%' }} />
+                  </div>
+               </div>
+             </div>
+          </Card>
+        </div>
       </div>
     </AppLayout>
   );

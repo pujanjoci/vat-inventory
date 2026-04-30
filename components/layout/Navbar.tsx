@@ -2,43 +2,68 @@
 
 import React from 'react';
 import { Bell, Search, User, Menu } from 'lucide-react';
-import { useApp } from '@/lib/context/AppContext';
+import { useAppContext } from '@/lib/context/AppContext';
+import { usePathname } from 'next/navigation';
+import { Badge } from '@/components/ui/Badge';
 
 export const Navbar = () => {
-  const { settings } = useApp();
+  const { settings } = useAppContext();
+  const pathname = usePathname();
+
+  // Generate breadcrumbs from pathname
+  const pathParts = pathname.split('/').filter(Boolean);
+  const breadcrumbs = pathParts.map((part, i) => ({
+    label: part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, ' '),
+    href: '/' + pathParts.slice(0, i + 1).join('/')
+  }));
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-30 flex items-center justify-between px-8 ml-64">
+    <header className="h-14 bg-white border-b border-[var(--color-border)] sticky top-0 z-30 flex items-center justify-between px-6 lg:px-10 transition-all">
       <div className="flex items-center gap-4">
-        <button className="lg:hidden p-2 text-slate-500 hover:bg-slate-50 rounded-md">
+        <button className="lg:hidden p-2 text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-raised)] rounded-lg">
           <Menu className="w-5 h-5" />
         </button>
-        <div className="hidden md:flex items-center bg-slate-100 rounded-full px-4 py-1.5 w-80">
-          <Search className="w-4 h-4 text-slate-400 mr-2" />
-          <input 
-            type="text" 
-            placeholder="Search records..." 
-            className="bg-transparent border-none focus:ring-0 text-sm w-full"
-          />
-        </div>
+        
+        {/* Breadcrumb - desktop only */}
+        <nav className="hidden md:flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
+          {breadcrumbs.length > 0 ? (
+            breadcrumbs.map((b, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <span className="text-[var(--color-border-strong)]">/</span>}
+                <span className={i === breadcrumbs.length - 1 ? "text-[var(--color-text-primary)] font-medium" : ""}>
+                  {b.label}
+                </span>
+              </React.Fragment>
+            ))
+          ) : (
+            <span className="text-[var(--color-text-primary)] font-medium">Dashboard</span>
+          )}
+        </nav>
       </div>
 
-      <div className="flex items-center gap-6">
-        <div className="hidden md:flex flex-col items-end mr-2">
-          <span className="text-sm font-bold text-slate-900">{settings.companyName}</span>
-          <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">PAN: {settings.panNo}</span>
+      <div className="flex items-center gap-4 lg:gap-6">
+        {/* Fiscal Year Selector */}
+        <div className="hidden sm:block">
+          <Badge variant="brand" className="px-3 py-1 bg-[var(--color-accent-light)] text-[var(--color-accent)] border border-indigo-100 shadow-sm">
+            FY 2081-82
+          </Badge>
         </div>
-        
-        <div className="h-8 w-px bg-slate-200" />
 
-        <div className="flex items-center gap-3">
-          <button className="p-2 text-slate-500 hover:bg-slate-50 rounded-full relative">
+        <div className="flex items-center gap-2 lg:gap-4">
+          <button className="p-2 text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-raised)] rounded-lg relative transition-colors">
             <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
+            <span className="absolute top-2 right-2 w-2 h-2 bg-[var(--color-danger)] rounded-full border-2 border-white" />
           </button>
-          <div className="flex items-center gap-3 pl-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
-              <User className="w-5 h-5" />
+          
+          <div className="h-8 w-px bg-[var(--color-border)] mx-1" />
+
+          <div className="flex items-center gap-3">
+            <div className="hidden lg:flex flex-col items-end">
+              <span className="text-xs font-bold text-[var(--color-text-primary)] leading-none">{settings.userName || 'Admin'}</span>
+              <span className="text-[10px] font-medium text-[var(--color-text-muted)] mt-1">Administrator</span>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-[var(--color-accent)] flex items-center justify-center text-white font-bold text-xs shadow-sm">
+              {settings.userName?.substring(0, 1).toUpperCase() || 'A'}
             </div>
           </div>
         </div>
@@ -46,5 +71,3 @@ export const Navbar = () => {
     </header>
   );
 };
-
-

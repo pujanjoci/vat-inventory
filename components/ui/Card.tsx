@@ -15,10 +15,10 @@ interface CardProps {
 
 export const Card = ({ children, title, className, headerAction }: CardProps) => {
   return (
-    <div className={cn('bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden', className)}>
+    <div className={cn('premium-card bg-white overflow-hidden', className)}>
       {(title || headerAction) && (
-        <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
-          {title && <h3 className="text-lg font-display text-slate-800">{title}</h3>}
+        <div className="px-6 py-4 border-b border-[var(--color-border)] bg-[var(--color-surface-raised)] flex items-center justify-between">
+          {title && <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">{title}</h3>}
           {headerAction && <div>{headerAction}</div>}
         </div>
       )}
@@ -28,4 +28,3 @@ export const Card = ({ children, title, className, headerAction }: CardProps) =>
     </div>
   );
 };
-

@@ -12,7 +12,7 @@ export default function Home() {
 
   return (
     <div className="flex h-screen items-center justify-center bg-slate-50">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-accent)]"></div>
     </div>
   );
 }

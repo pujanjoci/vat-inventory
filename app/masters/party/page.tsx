@@ -5,9 +5,10 @@ import { MasterPageTemplate } from '@/components/masters/MasterPageTemplate';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
-import { useApp } from '@/lib/context/AppContext';
+import { useAppContext } from '@/lib/context/AppContext';
 import { Badge } from '@/components/ui/Badge';
-import { formatAmount } from '@/lib/calculations';
+import { formatCurrency } from '@/lib/format';
+import { User, ShieldCheck, Phone, Mail, Fingerprint, Building } from 'lucide-react';
 
 const PartyForm = ({ onSubmit, onCancel }: { onSubmit: (data: any) => void; onCancel: () => void }) => {
   return (
@@ -16,59 +17,93 @@ const PartyForm = ({ onSubmit, onCancel }: { onSubmit: (data: any) => void; onCa
       const formData = new FormData(e.currentTarget);
       onSubmit(Object.fromEntries(formData));
     }} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Input label="Date" name="date" type="date" required />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="md:col-span-2">
+           <Input label="Legal Name of Entity" name="name" placeholder="e.g. ABC Trading Pvt. Ltd." required icon={<Building className="h-4 w-4" />} />
+        </div>
         <Select 
-          label="Type" 
+          label="Party Relationship Type" 
           name="type" 
           options={[
-            { label: 'Customer', value: 'Customer' },
-            { label: 'Vendor', value: 'Vendor' }
+            { label: 'Customer (Buyer)', value: 'Customer' },
+            { label: 'Vendor (Supplier)', value: 'Vendor' }
           ]} 
           required 
         />
-        <Input label="Name" name="name" placeholder="e.g. ABC Trading" required />
-        <Input label="PAN No" name="pan" placeholder="9-digit PAN" required />
-        <Input label="Phone" name="phone" placeholder="Contact number" />
-        <Input label="Email" name="email" type="email" placeholder="Email address" />
-        <Input label="Opening Balance" name="openingBalance" type="number" step="0.01" defaultValue="0" />
+        <Input label="VAT / PAN Registration No" name="pan" placeholder="9-digit numeric ID" required icon={<Fingerprint className="h-4 w-4" />} />
+        <Input label="Primary Phone" name="phone" placeholder="+977-XXXXXXXXXX" icon={<Phone className="h-4 w-4" />} />
+        <Input label="Email Address" name="email" type="email" placeholder="contact@entity.com" icon={<Mail className="h-4 w-4" />} />
+        <div className="md:col-span-2">
+          <Input label="Opening Balance (As of start of FY)" name="openingBalance" type="number" step="0.01" defaultValue="0" icon={<span className="text-[10px] font-bold">Rs.</span>} />
+        </div>
       </div>
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-        <Button variant="ghost" type="button" onClick={onCancel}>Cancel</Button>
-        <Button variant="primary" type="submit">Save Party</Button>
+      <div className="flex items-center justify-end gap-3 pt-6 border-t border-[var(--color-border)]">
+        <Button variant="ghost" type="button" onClick={onCancel}>Discard Changes</Button>
+        <Button variant="primary" type="submit" className="shadow-lg">Create Registered Party</Button>
       </div>
     </form>
   );
 };
 
 export default function PartyMasterPage() {
-  const { masters } = useApp();
+  const { masters } = useAppContext();
 
   const columns = [
-    { header: 'Name', accessor: 'name' },
     { 
-      header: 'Type', 
+      header: 'Entity Name', 
+      accessor: 'name',
+      render: (item: any) => (
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-[var(--color-surface-raised)] flex items-center justify-center border border-[var(--color-border)]">
+            <User className="h-4 w-4 text-[var(--color-text-secondary)]" />
+          </div>
+          <div>
+            <p className="font-bold text-[var(--color-text-primary)]">{item.name}</p>
+            <p className="text-[10px] text-[var(--color-text-muted)] font-mono uppercase">PAN: {item.pan}</p>
+          </div>
+        </div>
+      )
+    },
+    { 
+      header: 'Relationship', 
       accessor: 'type',
       render: (item: any) => (
-        <Badge variant={item.type === 'Vendor' ? 'warning' : 'success'}>
-          {item.type}
+        <Badge variant={item.type === 'Vendor' ? 'Vendor' : 'Taxable'}>
+          {item.type.toUpperCase()}
         </Badge>
       )
     },
-    { header: 'PAN', accessor: 'pan' },
-    { header: 'Phone', accessor: 'phone' },
+    { 
+      header: 'Contact Information', 
+      accessor: 'phone',
+      render: (item: any) => (
+        <div className="space-y-0.5">
+          <p className="text-xs text-[var(--color-text-secondary)] flex items-center gap-1.5">
+            <Phone className="h-3 w-3 text-[var(--color-text-muted)]" /> {item.phone || 'N/A'}
+          </p>
+          <p className="text-[10px] text-[var(--color-text-muted)] flex items-center gap-1.5">
+            <Mail className="h-3 w-3" /> {item.email || 'N/A'}
+          </p>
+        </div>
+      )
+    },
     { 
       header: 'Opening Balance', 
       accessor: 'openingBalance',
       align: 'right' as const,
-      render: (item: any) => `Rs. ${formatAmount(item.openingBalance)}`
+      render: (item: any) => (
+        <span className="font-mono font-semibold text-[var(--color-text-primary)]">
+          Rs. {formatCurrency(item.openingBalance)}
+        </span>
+      )
     },
   ];
 
   return (
     <MasterPageTemplate 
       title="Party Master"
-      description="Manage your customers and vendors directory."
+      subtitle="Comprehensive directory of registered customers and vendors."
+      description="Manage all your business entities and their tax registration details in one place."
       columns={columns}
       data={masters.party}
       formComponent={<PartyForm onSubmit={() => {}} onCancel={() => {}} />}
