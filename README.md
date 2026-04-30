@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ganesh Tel Mill - VAT & Inventory Portal
 
-## Getting Started
+A professional inventory and VAT management system built with Next.js 14 (App Router), Tailwind CSS, and Google Sheets.
 
-First, run the development server:
+## Features
+- **Dashboard:** Real-time KPIs for purchases, sales, and VAT dues.
+- **Master Data:** Manage Raw Materials, Finished Goods, Byproducts, Parties, and GL Accounts.
+- **Transactions:** Record Purchases, Sales, and Production with live cost/bill previews.
+- **Reports:** Filterable Stock Reports (RM/FG) and automated VAT Summary calculations.
+- **Costing:** Monthly overhead budget management with Preliminary vs Final rate locks.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Tech Stack
+- **Frontend:** Next.js (React 19), Tailwind CSS v4, Lucide Icons, Recharts.
+- **Backend:** Google Sheets + Google Apps Script (Web App).
+- **State:** React Context API + LocalStorage.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup Instructions
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 1. Google Sheets Configuration
+1. Create a new Google Sheet.
+2. Go to **Extensions > Apps Script**.
+3. Copy the content of `Code.gs` from this project into the Apps Script editor.
+4. Save the project and click **Run > onOpen** (authorize if prompted).
+5. Back in the Google Sheet, you should see a new menu **📦 Ganesh Tel Portal**. Click **Initialize Tabs**.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 2. Deploy Backend
+1. In the Apps Script editor, click **Deploy > New Deployment**.
+2. Select **Web App**.
+3. Set "Execute as" to **Me**.
+4. Set "Who has access" to **Anyone**.
+5. Click **Deploy** and copy the **Web App URL**.
 
-## Learn More
+### 3. Frontend Configuration
+1. Install dependencies: `npm install`
+2. Start the development server: `npm run dev`
+3. Open `http://localhost:3000` in your browser.
+4. Go to **Settings** in the sidebar.
+5. Paste your **Web App URL** into the Backend Integration section.
+6. Save Settings.
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
+- `app/`: Next.js pages and layouts.
+- `components/`: Reusable UI, layout, and form components.
+- `lib/`: Business logic, calculations, API client, and state management.
+- `Code.gs`: The backend script for Google Sheets.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Business Logic
+- **VAT:** Standard 13% rate applied to taxable transactions.
+- **Weighted Average Cost:** Calculated dynamically by the Stock Journal for accurate COGS and GP reporting.
+- **Costing:** Overhead rates are preliminary until the month is set to FINAL in the Costing section.

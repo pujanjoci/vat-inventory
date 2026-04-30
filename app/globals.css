@@ -1,26 +1,72 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-brand-primary: #4f46e5; /* indigo-600 */
+  --color-brand-success: #059669; /* emerald-600 */
+  --color-brand-warning: #f59e0b; /* amber-500 */
+  --color-brand-danger: #e11d48; /* rose-600 */
+  
+  --font-display: var(--font-playfair), serif;
+  --font-body: var(--font-dm-sans), sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+
+  --shadow-premium: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  --background: #f8fafc; /* slate-50 */
+  --foreground: #0f172a; /* slate-900 */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0f172a;
+    --foreground: #f8fafc;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Table Styles */
+.premium-table {
+  @apply w-full text-left border-collapse bg-white rounded-lg overflow-hidden shadow-sm;
+}
+.premium-table thead th {
+  @apply bg-slate-50 text-slate-600 font-semibold px-4 py-3 text-xs uppercase tracking-wider sticky top-0;
+}
+.premium-table tbody td {
+  @apply px-4 py-3 border-t border-slate-100 text-sm;
+}
+.premium-table tbody tr:hover {
+  @apply bg-slate-50;
+}
+
+/* Input Styles */
+.premium-input {
+  @apply w-full px-3 py-2 bg-white border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all;
 }
