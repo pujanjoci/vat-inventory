@@ -1,10 +1,10 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { RMMaster, FGMaster, BPMaster, PartyMaster, GLMaster, AppSettings } from '../types';
+import { RMMaster, FGMaster, BPMaster, PartyMaster, GLMaster, AppSettings, User } from '../types';
 import { DEFAULT_SETTINGS } from '../constants';
 import { fetchFromGAS, ACTIONS } from '../api';
-import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from 'lucide-react';
+import { X, CheckCircle, AlertTriangle, AlertCircle, Info, User as UserIcon } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -19,11 +19,14 @@ interface Toast {
 }
 
 interface AppContextType {
+  user: User | null;
+  mounted: boolean;
+  login: (userData: User) => void;
+  logout: () => void;
   masters: {
     rm: RMMaster[];
     fg: FGMaster[];
     bp: BPMaster[];
-    party: PartyMaster[];
     gl: GLMaster[];
   };
   settings: AppSettings;
@@ -39,18 +42,38 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('ganesh_user');
+    if (saved) {
+      try {
+        setUser(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse saved user', e);
+      }
+    }
+    setMounted(true);
+  }, []);
+
   const [masters, setMasters] = useState({
     rm: [],
     fg: [],
     bp: [],
-    party: [],
     gl: [],
   });
   
   const [settings, setSettings] = useState<AppSettings>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('ganesh_settings');
-      return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Fallback to DEFAULT_SETTINGS (env var) if saved URL is empty
+        if (!parsed.appsScriptUrl) parsed.appsScriptUrl = DEFAULT_SETTINGS.appsScriptUrl;
+        return parsed;
+      }
+      return DEFAULT_SETTINGS;
     }
     return DEFAULT_SETTINGS;
   });
@@ -58,6 +81,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const login = (userData: User) => {
+    setUser(userData);
+    localStorage.setItem('ganesh_user', JSON.stringify(userData));
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('ganesh_user');
+    window.location.href = '/login';
+  };
 
   const showToast = useCallback((message: string, type: Toast['type']) => {
     const id = Math.random().toString(36).substring(7);
@@ -71,21 +105,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!settings.appsScriptUrl) return;
     setIsLoading(true);
     try {
-      const [rm, fg, bp, party, gl] = await Promise.all([
+      const [rm, fg, bp, gl] = await Promise.all([
         fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_RM_MASTER),
         fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_FG_MASTER),
         fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_BP_MASTER),
-        fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_PARTY_MASTER),
         fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_GL_MASTER),
       ]);
-      setMasters({ rm, fg, bp, party, gl });
+      setMasters({ rm, fg, bp, gl });
     } catch (error) {
       console.error('Failed to fetch masters:', error);
-      showToast('Connection failed. Please check your Apps Script URL.', 'error');
+      // Don't show toast on initial load error if not logged in
+      if (user) showToast('Connection failed. Please check your Apps Script URL.', 'error');
     } finally {
       setIsLoading(false);
     }
-  }, [settings.appsScriptUrl, showToast]);
+  }, [settings.appsScriptUrl, showToast, user]);
 
   const updateSettings = (newSettings: AppSettings) => {
     setSettings(newSettings);
@@ -94,13 +128,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    if (settings.appsScriptUrl) {
+    if (settings.appsScriptUrl && user) {
       refreshMasters();
     }
-  }, [settings.appsScriptUrl, refreshMasters]);
+  }, [settings.appsScriptUrl, refreshMasters, user]);
 
   return (
     <AppContext.Provider value={{
+      user,
+      mounted,
+      login,
+      logout,
       masters,
       settings,
       isLoading,

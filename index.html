@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #eab308;
+      --bg: #f8fafc;
+      --card-bg: rgba(255, 255, 255, 0.8);
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --gold-gradient: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); overflow-x: hidden; }
+
+    /* Transitions */
+    .page-section { display: none; min-height: 100vh; animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Login Styles */
+    #login-page { display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at top right, #1e293b, #0f172a); }
+    .login-container { background: var(--card-bg); backdrop-filter: blur(10px); padding: 2.5rem; border-radius: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 450px; border: 1px solid rgba(255,255,255,0.1); }
+    .login-header { text-align: center; margin-bottom: 2rem; }
+    .login-header h1 { color: var(--accent); font-weight: 700; font-size: 2rem; letter-spacing: -0.025em; }
+    .login-tabs { display: flex; gap: 0.5rem; background: #f1f5f9; padding: 0.4rem; border-radius: 0.75rem; margin-bottom: 2rem; }
+    .login-tab { flex: 1; padding: 0.75rem; text-align: center; cursor: pointer; border-radius: 0.5rem; font-weight: 600; transition: all 0.2s; color: var(--text-muted); }
+    .login-tab.active { background: white; color: var(--primary); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+
+    /* Layout Styles */
+    .layout-wrapper { display: flex; min-height: 100vh; }
+    .sidebar { width: 280px; background: var(--primary); color: white; padding: 2rem 1rem; position: fixed; height: 100vh; }
+    .main-content { flex: 1; margin-left: 280px; padding: 2.5rem; }
+    .sidebar-brand { font-size: 1.5rem; font-weight: 700; color: var(--accent); margin-bottom: 3rem; padding-left: 1rem; }
+    .nav-item { padding: 1rem; margin: 0.25rem 0; border-radius: 0.75rem; cursor: pointer; transition: all 0.2s; color: #94a3b8; font-weight: 500; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+    .nav-item.active { background: var(--gold-gradient); color: var(--primary); }
+
+    /* Component Styles */
+    .card { background: white; border-radius: 1rem; padding: 1.5rem; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+    .profile-card { display: flex; gap: 2rem; align-items: center; background: var(--gold-gradient); color: var(--primary); }
+    .profile-info h3 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .profile-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 1rem; font-size: 0.875rem; }
+
+    /* Forms & Inputs */
+    .form-group { margin-bottom: 1.25rem; }
+    label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text); }
+    input, select, textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; font-family: inherit; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+    input:focus { border-color: var(--accent); }
+    .btn { padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; font-size: 1rem; }
+    .btn-primary { background: var(--gold-gradient); color: var(--primary); width: 100%; }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { background: #f8fafc; }
+
+    /* Tables */
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th { text-align: left; padding: 1rem; border-bottom: 2px solid var(--border); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    td { padding: 1rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+    tr:hover { background: #f8fafc; }
+
+    /* Notifications */
+    .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 2rem; border-radius: 0.5rem; background: var(--primary); color: white; display: none; z-index: 1000; animation: slideIn 0.3s ease; }
+    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+    /* Status Badges */
+    .badge { padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 600; }
+    .badge-active { background: #dcfce7; color: #166534; }
+    .badge-inactive { background: #fee2e2; color: #991b1b; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar { width: 0; padding: 0; overflow: hidden; }
+      .main-content { margin-left: 0; padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <!-- LOGIN PAGE -->
+  <section id="login-page" class="page-section" style="display: flex;">
+    <div class="login-container">
+      <div class="login-header">
+        <h1>VAT ERP</h1>
+        <p style="color: var(--text-muted); margin-top: 0.5rem;">Enterprise Resource Planning</p>
+      </div>
+      
+      <div class="login-tabs">
+        <div class="login-tab active" onclick="switchLoginTab('Admin')">Admin</div>
+        <div class="login-tab" onclick="switchLoginTab('Company')">Company</div>
+      </div>
+
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div id="company-fields" style="display: none;">
+          <div class="form-group">
+            <label>Company Name</label>
+            <input type="text" id="login-company" placeholder="Enter Company Name">
+          </div>
+          <div class="form-group">
+            <label>PAN No</label>
+            <input type="text" id="login-pan" placeholder="Enter PAN Number">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="login-username" required placeholder="Enter Username">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" required placeholder="••••••••">
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="login-btn">Login to Account</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ADMIN DASHBOARD -->
+  <section id="admin-page" class="page-section">
+    <div class="layout-wrapper">
+      <div class="sidebar">
+        <div class="sidebar-brand">Admin Panel</div>
+        <div class="nav-item active">User Management</div>
+        <div class="nav-item" onclick="logout()">Logout</div>
+      </div>
+      <div class="main-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+          <h1>Company Users</h1>
+          <button class="btn btn-primary" style="width: auto;" onclick="showAddUserModal()">+ Add New Company</button>
+        </div>
+
+        <div class="card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Company</th>
+                  <th>PAN No</th>
+                  <th>Contact</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <!-- Data injected here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD USER MODAL (simplified as a hidden div) -->
+    <div id="user-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center;">
+      <div class="card" style="width:100%; max-width:500px;">
+        <h2 id="modal-title">Add Company User</h2>
+        <form id="user-form" onsubmit="handleUserSubmit(event)" style="margin-top:1.5rem;">
+          <div class="form-group">
+            <label>Company Name</label>
+            <input type="text" id="user-company" required>
+          </div>
+          <div class="form-group">
+            <label>PAN No</label>
+            <input type="text" id="user-pan" required>
+          </div>
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="user-username" required>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="text" id="user-password" required>
+          </div>
+          <div class="form-group">
+            <label>Contact No</label>
+            <input type="text" id="user-contact">
+          </div>
+          <div style="display:flex; gap:1rem; margin-top:2rem;">
+            <button type="button" class="btn btn-outline" onclick="closeUserModal()" style="flex:1">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1">Save User</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPANY PORTAL -->
+  <section id="company-page" class="page-section">
+    <div class="layout-wrapper">
+      <div class="sidebar">
+        <div class="sidebar-brand">Company Portal</div>
+        <div class="nav-item active" onclick="switchModule('Profile')">Dashboard</div>
+        <div class="nav-item" onclick="switchModule('RM_Master')">RM Master</div>
+        <div class="nav-item" onclick="switchModule('FG_Master')">FG Master</div>
+        <div class="nav-item" onclick="switchModule('BP_Master')">BP Master</div>
+        <div class="nav-item" onclick="switchModule('ARAP_Master')">AR/AP Master</div>
+        <div class="nav-item" onclick="switchModule('GL_Master')">GL Master</div>
+        <div class="nav-item" onclick="logout()" style="margin-top: auto;">Logout</div>
+      </div>
+      <div class="main-content">
+        <!-- Profile Section -->
+        <div id="module-Profile" class="module-section">
+          <div class="card profile-card">
+            <div style="background: white; border-radius: 100%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🏢</div>
+            <div class="profile-info" style="flex: 1;">
+              <h3 id="prof-company-name">Loading...</h3>
+              <p id="prof-username" style="opacity: 0.8;">@username</p>
+              <div class="profile-meta">
+                <div>
+                  <p style="opacity: 0.6; font-size: 0.75rem; text-transform: uppercase;">PAN Number</p>
+                  <p id="prof-pan" style="font-weight: 600;">-</p>
+                </div>
+                <div>
+                  <p style="opacity: 0.6; font-size: 0.75rem; text-transform: uppercase;">Contact No</p>
+                  <p id="prof-contact" style="font-weight: 600;">-</p>
+                </div>
+                <div>
+                  <p style="opacity: 0.6; font-size: 0.75rem; text-transform: uppercase;">License Type</p>
+                  <p style="font-weight: 600;">Full Access</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <h2>Quick Actions</h2>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+            <div class="card" style="cursor: pointer;" onclick="switchModule('RM_Master')">Add Raw Material</div>
+            <div class="card" style="cursor: pointer;" onclick="switchModule('FG_Master')">Add Finished Goods</div>
+            <div class="card" style="cursor: pointer;" onclick="switchModule('BP_Master')">Manage Partners</div>
+          </div>
+        </div>
+
+        <!-- Dynamic Master Sections -->
+        <div id="module-Master" class="module-section" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1 id="master-title">Master Module</h1>
+            <button class="btn btn-primary" style="width: auto;" onclick="showMasterForm()">+ Add New Entry</button>
+          </div>
+
+          <div class="card">
+            <div class="table-container">
+              <table id="master-table">
+                <thead id="master-thead"></thead>
+                <tbody id="master-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MASTER ENTRY MODAL -->
+    <div id="master-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center;">
+      <div class="card" style="width:100%; max-width:600px; max-height: 90vh; overflow-y: auto;">
+        <h2 id="master-form-title">Add Entry</h2>
+        <form id="master-form" onsubmit="handleMasterSubmit(event)" style="margin-top:1.5rem;">
+          <div id="master-form-fields"></div>
+          <div style="display:flex; gap:1rem; margin-top:2rem;">
+            <button type="button" class="btn btn-outline" onclick="closeMasterModal()" style="flex:1">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1">Submit Entry</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    let currentUser = null;
+    let currentRole = 'Admin';
+    let currentModule = 'Profile';
+
+    const MASTER_CONFIGS = {
+      'RM_Master': { title: 'Raw Material Master', headers: ['ItemCode', 'ItemName', 'UOM', 'Category', 'Description'] },
+      'FG_Master': { title: 'Finished Goods Master', headers: ['ItemCode', 'ItemName', 'UOM', 'Category', 'Description'] },
+      'BP_Master': { title: 'Business Partner Master', headers: ['BPCode', 'BPName', 'Type', 'ContactPerson', 'Phone', 'Email', 'Address'] },
+      'ARAP_Master': { title: 'AR/AP Master', headers: ['EntryID', 'BPCode', 'Type', 'Amount', 'DueDate', 'Status'] },
+      'GL_Master': { title: 'General Ledger Master', headers: ['AccountCode', 'AccountName', 'AccountType', 'ParentAccount', 'Description'] }
+    };
+
+    function switchLoginTab(role) {
+      currentRole = role;
+      document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('company-fields').style.display = role === 'Company' ? 'block' : 'none';
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('login-btn');
+      btn.innerText = 'Logging in...';
+      btn.disabled = true;
+
+      const user = document.getElementById('login-username').value;
+      const pass = document.getElementById('login-password').value;
+      const comp = document.getElementById('login-company').value;
+      const pan = document.getElementById('login-pan').value;
+
+      google.script.run
+        .withSuccessHandler(userData => {
+          currentUser = userData;
+          if (currentRole === 'Admin') {
+            showPage('admin-page');
+            loadUsers();
+          } else {
+            showPage('company-page');
+            loadProfile();
+          }
+          showToast('Welcome back, ' + userData.Username);
+        })
+        .withFailureHandler(err => {
+          showToast(err.message);
+          btn.innerText = 'Login to Account';
+          btn.disabled = false;
+        })
+        .loginUser(user, pass, currentRole, comp, pan);
+    }
+
+    function showPage(id) {
+      document.querySelectorAll('.page-section').forEach(p => p.style.display = 'none');
+      const target = document.getElementById(id);
+      if (id === 'login-page') {
+        target.style.display = 'flex';
+      } else {
+        target.style.display = 'block';
+      }
+    }
+
+    function logout() {
+      currentUser = null;
+      showPage('login-page');
+      document.getElementById('login-form').reset();
+      document.getElementById('login-btn').innerText = 'Login to Account';
+      document.getElementById('login-btn').disabled = false;
+    }
+
+    /* ADMIN FUNCTIONS */
+    function loadUsers() {
+      google.script.run.withSuccessHandler(users => {
+        const tbody = document.getElementById('users-table-body');
+        tbody.innerHTML = users.map(u => `
+          <tr>
+            <td>${u.Username}</td>
+            <td>${u.CompanyName || 'N/A'}</td>
+            <td>${u.PAN_No || 'N/A'}</td>
+            <td>${u.ContactNo || 'N/A'}</td>
+            <td><span class="badge badge-${u.Status.toLowerCase()}">${u.Status}</span></td>
+            <td>
+              <button class="btn btn-outline" style="padding: 0.4rem;" onclick="toggleUserStatus('${u.Username}', '${u.Status}')">
+                ${u.Status === 'Active' ? 'Deactivate' : 'Activate'}
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      }).getUsers();
+    }
+
+    function showAddUserModal() {
+      document.getElementById('user-modal').style.display = 'flex';
+      document.getElementById('user-form').reset();
+    }
+
+    function closeUserModal() { document.getElementById('user-modal').style.display = 'none'; }
+
+    function handleUserSubmit(e) {
+      e.preventDefault();
+      const obj = {
+        Username: document.getElementById('user-username').value,
+        Password: document.getElementById('user-password').value,
+        CompanyName: document.getElementById('user-company').value,
+        PAN_No: document.getElementById('user-pan').value,
+        ContactNo: document.getElementById('user-contact').value,
+        Role: 'Company'
+      };
+      google.script.run.withSuccessHandler(() => {
+        showToast('User created successfully');
+        closeUserModal();
+        loadUsers();
+      }).withFailureHandler(err => showToast(err.message)).createUser(obj);
+    }
+
+    function toggleUserStatus(username, currentStatus) {
+      const newStatus = currentStatus === 'Active' ? 'Deactivated' : 'Active';
+      google.script.run.withSuccessHandler(() => {
+        showToast('User updated');
+        loadUsers();
+      }).updateUser({ Username: username, Status: newStatus });
+    }
+
+    /* COMPANY FUNCTIONS */
+    function loadProfile() {
+      document.getElementById('prof-company-name').innerText = currentUser.CompanyName;
+      document.getElementById('prof-username').innerText = '@' + currentUser.Username;
+      document.getElementById('prof-pan').innerText = currentUser.PAN_No;
+      document.getElementById('prof-contact').innerText = currentUser.ContactNo;
+      switchModule('Profile');
+    }
+
+    function switchModule(mod) {
+      currentModule = mod;
+      document.querySelectorAll('.nav-item').forEach(i => {
+        i.classList.remove('active');
+        const text = i.innerText.trim();
+        if (text === mod.replace('_Master', ' Master') || (mod === 'Profile' && text === 'Dashboard')) {
+          i.classList.add('active');
+        }
+      });
+
+      if (mod === 'Profile') {
+        document.getElementById('module-Profile').style.display = 'block';
+        document.getElementById('module-Master').style.display = 'none';
+      } else {
+        document.getElementById('module-Profile').style.display = 'none';
+        document.getElementById('module-Master').style.display = 'block';
+        loadMasterData(mod);
+      }
+    }
+
+    function loadMasterData(mod) {
+      const config = MASTER_CONFIGS[mod];
+      document.getElementById('master-title').innerText = config.title;
+      
+      const thead = document.getElementById('master-thead');
+      thead.innerHTML = `<tr>${config.headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+
+      google.script.run.withSuccessHandler(data => {
+        const tbody = document.getElementById('master-tbody');
+        tbody.innerHTML = data.map(row => `
+          <tr>${config.headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>
+        `).join('');
+      }).getMasterData(mod);
+    }
+
+    function showMasterForm() {
+      const config = MASTER_CONFIGS[currentModule];
+      document.getElementById('master-form-title').innerText = 'Add to ' + config.title;
+      const fieldsDiv = document.getElementById('master-form-fields');
+      fieldsDiv.innerHTML = config.headers.map(h => `
+        <div class="form-group">
+          <label>${h}</label>
+          <input type="text" name="${h}" placeholder="Enter ${h}">
+        </div>
+      `).join('');
+      document.getElementById('master-modal').style.display = 'flex';
+    }
+
+    function closeMasterModal() { document.getElementById('master-modal').style.display = 'none'; }
+
+    function handleMasterSubmit(e) {
+      e.preventDefault();
+      const obj = {};
+      const inputs = e.target.querySelectorAll('input');
+      inputs.forEach(input => obj[input.name] = input.value);
+      
+      google.script.run.withSuccessHandler(() => {
+        showToast('Entry added successfully');
+        closeMasterModal();
+        loadMasterData(currentModule);
+      }).addMasterEntry(currentModule, obj);
+    }
+
+    window.onload = () => {
+      showPage('login-page');
+    };
+  </script>
+</body>
+</html>

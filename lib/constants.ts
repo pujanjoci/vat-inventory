@@ -15,7 +15,7 @@ export const DEFAULT_SETTINGS = {
   userName: 'Admin',
   contactNo: '',
   vatRate: 13,
-  appsScriptUrl: '',
+  appsScriptUrl: process.env.NEXT_PUBLIC_GAS_URL || '',
 };
 
 export const PRODUCT_TYPES = ['RM', 'FG', 'BP'] as const;

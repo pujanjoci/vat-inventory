@@ -24,48 +24,49 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const navigation = [
-  {
-    title: 'Management',
-    items: [
-      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    ]
-  },
-  {
-    title: 'Ledgers',
-    items: [
-      { label: 'Purchase Entry', href: '/transactions/purchase', icon: TrendingUp },
-      { label: 'Sales Entry', href: '/transactions/sales', icon: TrendingUp },
-      { label: 'Production Entry', href: '/transactions/production', icon: TrendingUp },
-    ]
-  },
-  {
-    title: 'Inventories',
-    items: [
-      { label: 'Raw Materials', href: '/masters/rm', icon: Database },
-      { label: 'Finished Goods', href: '/masters/fg', icon: Database },
-      { label: 'By-products', href: '/masters/bp', icon: Database },
-      { label: 'Party Master', href: '/masters/party', icon: Database },
-    ]
-  },
-  {
-    title: 'Financials',
-    items: [
-      { label: 'VAT Summary', href: '/reports/vat-summary', icon: FileText },
-      { label: 'Inventory Costing', href: '/costing', icon: PieChart },
-    ]
-  },
-  {
-    title: 'System',
-    items: [
-      { label: 'Preferences', href: '/settings', icon: Settings },
-    ]
-  }
-];
-
 export const Sidebar = () => {
   const pathname = usePathname();
-  const { settings, sidebarCollapsed: collapsed, setSidebarCollapsed: setCollapsed } = useAppContext();
+  const { user, logout, sidebarCollapsed: collapsed, setSidebarCollapsed: setCollapsed } = useAppContext();
+
+  const navigation = [
+    {
+      title: 'Management',
+      items: [
+        { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        ...(user?.Role === 'Admin' ? [{ label: 'User Management', href: '/admin/users', icon: ShieldCheck }] : []),
+      ]
+    },
+    {
+      title: 'Ledgers',
+      items: [
+        { label: 'Purchase Entry', href: '/transactions/purchase', icon: TrendingUp },
+        { label: 'Sales Entry', href: '/transactions/sales', icon: TrendingUp },
+        { label: 'Production Entry', href: '/transactions/production', icon: TrendingUp },
+      ]
+    },
+    {
+      title: 'Inventories',
+      items: [
+        { label: 'Raw Materials', href: '/masters/rm', icon: Database },
+        { label: 'Finished Goods', href: '/masters/fg', icon: Database },
+        { label: 'By-products', href: '/masters/bp', icon: Database },
+        { label: 'Party Master', href: '/masters/party', icon: Database },
+      ]
+    },
+    {
+      title: 'Financials',
+      items: [
+        { label: 'VAT Summary', href: '/reports/vat-summary', icon: FileText },
+        { label: 'Inventory Costing', href: '/costing', icon: PieChart },
+      ]
+    },
+    {
+      title: 'System',
+      items: [
+        { label: 'Preferences', href: '/settings', icon: Settings },
+      ]
+    }
+  ];
 
   return (
     <aside 
@@ -82,7 +83,7 @@ export const Sidebar = () => {
         {!collapsed && (
           <div className="flex flex-col overflow-hidden">
             <span className="text-[var(--color-text-primary)] font-bold text-sm tracking-tight uppercase whitespace-nowrap font-display">Vat & Inventory</span>
-            <span className="text-[9px] text-[var(--color-text-muted)] font-bold tracking-[0.2em] uppercase truncate mt-0.5">{settings.companyName}</span>
+            <span className="text-[9px] text-[var(--color-text-muted)] font-bold tracking-[0.2em] uppercase truncate mt-0.5">{user?.CompanyName || 'Ganesh Tel Mill'}</span>
           </div>
         )}
       </div>
@@ -132,13 +133,25 @@ export const Sidebar = () => {
       <div className="p-4 border-t border-[var(--color-border)] bg-surface-raised/50">
         {!collapsed && (
           <div className="flex items-center gap-3 px-2 py-3 mb-4 rounded-xl bg-white border border-[var(--color-border)] shadow-sm">
-            <div className="w-9 h-9 bg-accent-light border border-accent/20 rounded-full flex items-center justify-center text-xs font-bold text-accent shrink-0">
-              {settings.userName?.substring(0, 2).toUpperCase() || 'AD'}
+            <div className={cn(
+              "w-9 h-9 border border-accent/20 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
+              user?.Role === 'Admin' ? "bg-indigo-50 text-indigo-600" : "bg-accent-light text-accent"
+            )}>
+              {user?.Username?.substring(0, 2).toUpperCase() || 'AD'}
             </div>
-            <div className="flex flex-col overflow-hidden">
-              <span className="text-xs text-[var(--color-text-primary)] font-bold truncate">{settings.userName || 'Admin User'}</span>
-              <span className="text-[10px] text-[var(--color-text-muted)] font-medium font-mono">PAN: {settings.panNo}</span>
+            <div className="flex flex-col overflow-hidden flex-1">
+              <span className="text-xs text-[var(--color-text-primary)] font-bold truncate">{user?.Username || 'Admin User'}</span>
+              <span className="text-[10px] text-[var(--color-text-muted)] font-medium font-mono uppercase tracking-tighter">
+                {user?.Role === 'Admin' ? 'System Administrator' : `PAN: ${user?.PAN_No}`}
+              </span>
             </div>
+            <button 
+              onClick={logout}
+              className="text-slate-400 hover:text-red-500 transition-colors p-1"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         )}
         <button 
@@ -150,7 +163,7 @@ export const Sidebar = () => {
           ) : (
             <>
               <ChevronLeft className="h-4 w-4" /> 
-              <span className="text-xs font-bold uppercase tracking-widest">Collapse</span>
+              <span className="text-xs font-bold uppercase tracking-widest">Collapse Sidebar</span>
             </>
           )}
         </button>

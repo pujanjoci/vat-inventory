@@ -22,13 +22,13 @@ export interface FGMaster {
 }
 
 export interface BPMaster {
-  date: string;
-  productName: string;
-  productCode: string;
-  isTaxable: 'Yes' | 'No';
-  uom: UOM;
-  openingQty: number;
-  openingAmount: number;
+  bpCode: string;
+  bpName: string;
+  type: 'Vendor' | 'Customer' | 'Both';
+  contactPerson: string;
+  phone: string;
+  email: string;
+  address: string;
 }
 
 export interface PartyMaster {
@@ -138,4 +138,14 @@ export interface AppSettings {
   contactNo: string;
   vatRate: number;
   appsScriptUrl: string;
+}
+
+export interface User {
+  Username: string;
+  Password?: string;
+  Role: 'Admin' | 'Company';
+  CompanyName?: string;
+  PAN_No?: string;
+  ContactNo?: string;
+  Status: 'Active' | 'Deactivated';
 }

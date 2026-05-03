@@ -31,6 +31,8 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
+import { useAppContext } from '@/lib/context/AppContext';
+import { fetchFromGAS, ACTIONS } from '@/lib/api';
 
 const performanceData = [
   { month: 'Shrawan', sales: 450000, purchases: 380000, margin: 15 },
@@ -61,6 +63,33 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function DashboardPage() {
+  const { settings } = useAppContext();
+  const [stats, setStats] = React.useState<any>(null);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+    const loadStats = async () => {
+      if (!settings.appsScriptUrl) return;
+      try {
+        const data = await fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_DASHBOARD_STATS);
+        setStats(data);
+      } catch (err) {
+        console.error('Failed to load dashboard stats:', err);
+      }
+    };
+    loadStats();
+  }, [settings.appsScriptUrl]);
+
+  const displayStats = stats || {
+    totalPurchases: 0,
+    totalSales: 0,
+    inputVat: 0,
+    outputVat: 0,
+    vatPayable: 0,
+    inventoryValue: 0
+  };
+
   return (
     <AppLayout>
       <PageHeader 
@@ -87,8 +116,9 @@ export default function DashboardPage() {
         <div className="lg:col-span-8">
           <Card title="Revenue & Expenditure Trends" className="h-full">
             <div className="h-[350px] w-full mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={performanceData}>
+              {mounted && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={performanceData}>
                   <defs>
                     <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--color-accent)" stopOpacity={0.1}/>
@@ -131,6 +161,7 @@ export default function DashboardPage() {
                   />
                 </AreaChart>
               </ResponsiveContainer>
+              )}
             </div>
           </Card>
         </div>
@@ -142,7 +173,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Current Liability</p>
-                  <p className="text-3xl font-display font-bold text-[var(--color-danger)] leading-none">Rs. {formatCurrency(86250)}</p>
+                  <p className="text-3xl font-display font-bold text-[var(--color-danger)] leading-none">Rs. {formatCurrency(displayStats.vatPayable)}</p>
                 </div>
                 <Badge variant="PRELIMINARY">FY 2081</Badge>
               </div>
@@ -152,18 +183,18 @@ export default function DashboardPage() {
                   <span className="text-[var(--color-text-secondary)] flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-[var(--color-accent)]" /> Output VAT
                   </span>
-                  <span className="font-mono font-semibold">Rs. 324,500.00</span>
+                  <span className="font-mono font-semibold">Rs. {formatCurrency(displayStats.outputVat)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-[var(--color-text-secondary)] flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-slate-400" /> Input VAT
                   </span>
-                  <span className="font-mono font-semibold">Rs. 238,250.00</span>
+                  <span className="font-mono font-semibold">Rs. {formatCurrency(displayStats.inputVat)}</span>
                 </div>
                 <div className="h-px bg-[var(--color-border)] my-2" />
                 <div className="flex items-center justify-between text-sm font-bold">
                   <span className="text-[var(--color-text-primary)]">Net Payable</span>
-                  <span className="font-mono text-[var(--color-danger)]">Rs. 86,250.00</span>
+                  <span className="font-mono text-[var(--color-danger)]">Rs. {formatCurrency(displayStats.vatPayable)}</span>
                 </div>
               </div>
             </div>
@@ -174,33 +205,34 @@ export default function DashboardPage() {
         {/* 4 KPI Cards - each spans 3 cols in desktop */}
         <div className="lg:col-span-3">
           <MetricCard 
-            title="Raw Material Stock" 
-            value={formatCurrency(1240500)}
+            title="Inventory Value" 
+            value={formatCurrency(displayStats.inventoryValue)}
             icon={Package}
-            trend={12.5}
+            trend={0}
           />
         </div>
         <div className="lg:col-span-3">
           <MetricCard 
-            title="Finished Goods" 
-            value={formatCurrency(850600)}
-            icon={Layers}
-            trend={-2.4}
-          />
-        </div>
-        <div className="lg:col-span-3">
-          <MetricCard 
-            title="Gross Profit" 
-            value={formatCurrency(663670)}
+            title="Total Sales" 
+            value={formatCurrency(displayStats.totalSales)}
             icon={ArrowUpRight}
-            trend={8.2}
+            trend={0}
           />
         </div>
         <div className="lg:col-span-3">
           <MetricCard 
-            title="Total Parties" 
-            value="142"
-            icon={Filter}
+            title="Total Purchases" 
+            value={formatCurrency(displayStats.totalPurchases)}
+            icon={ShoppingCart}
+            trend={0}
+          />
+        </div>
+        <div className="lg:col-span-3">
+          <MetricCard 
+            title="VAT Position" 
+            value={formatCurrency(displayStats.vatPayable)}
+            icon={CreditCard}
+            trend={0}
           />
         </div>
 

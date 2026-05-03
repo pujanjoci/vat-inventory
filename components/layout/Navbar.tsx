@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { Badge } from '@/components/ui/Badge';
 
 export const Navbar = () => {
-  const { settings } = useAppContext();
+  const { user } = useAppContext();
   const pathname = usePathname();
 
   // Generate breadcrumbs from pathname
@@ -59,11 +59,11 @@ export const Navbar = () => {
 
           <div className="flex items-center gap-3">
             <div className="hidden lg:flex flex-col items-end">
-              <span className="text-xs font-bold text-[var(--color-text-primary)] leading-none">{settings.userName || 'Admin'}</span>
-              <span className="text-[10px] font-medium text-[var(--color-text-muted)] mt-1">Administrator</span>
+              <span className="text-xs font-bold text-[var(--color-text-primary)] leading-none">{user?.Username || 'Guest'}</span>
+              <span className="text-[10px] font-medium text-[var(--color-text-muted)] mt-1">{user?.Role === 'Admin' ? 'System Administrator' : 'Company Staff'}</span>
             </div>
             <div className="w-8 h-8 rounded-full bg-[var(--color-accent)] flex items-center justify-center text-white font-bold text-xs shadow-sm">
-              {settings.userName?.substring(0, 1).toUpperCase() || 'A'}
+              {user?.Username?.substring(0, 1).toUpperCase() || 'G'}
             </div>
           </div>
         </div>
