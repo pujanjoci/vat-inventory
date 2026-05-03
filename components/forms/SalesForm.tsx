@@ -42,7 +42,7 @@ export const SalesForm = () => {
     setItems(newItems);
   };
 
-  const selectedCustomer = masters.bp.find(p => p.bpName === formData.customerName);
+  const selectedCustomer = masters.parties.find(p => p.bpName === formData.customerName);
   
   const totals = useMemo(() => {
     const t = { taxable: 0, vat: 0, nonTaxable: 0, grandTotal: 0, grossProfit: 0, gpPercent: 0 };
@@ -126,7 +126,7 @@ export const SalesForm = () => {
             <div className="md:col-span-2 lg:col-span-3">
               <Select 
                 label="Customer / Client" 
-                options={masters.bp.filter(p => p.type === 'Customer').map(v => ({ label: v.bpName, value: v.bpName }))}
+                options={masters.parties.filter(p => p.type === 'Customer').map(v => ({ label: v.bpName, value: v.bpName }))}
                 value={formData.customerName}
                 onChange={e => setFormData({ ...formData, customerName: e.target.value })}
                 required
@@ -161,7 +161,7 @@ export const SalesForm = () => {
                   <tr key={idx} className="hover:bg-success-light/20 transition-colors">
                     <td className="px-6 py-3 min-w-[240px]">
                       <Select 
-                        options={[...masters.fg, ...masters.bp].map(p => ({ label: `${p.productName} (${p.productCode})`, value: p.productCode }))}
+                        options={[...masters.fg, ...[]].map(p => ({ label: `${p.productName} (${p.productCode})`, value: p.productCode }))}
                         value={item.productCode}
                         onChange={e => updateItem(idx, 'productCode', e.target.value)}
                         className="border-0 shadow-none bg-transparent hover:bg-white focus:bg-white h-9 px-2"

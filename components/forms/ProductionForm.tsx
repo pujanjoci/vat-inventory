@@ -237,7 +237,7 @@ export const ProductionForm = () => {
                   <div className="flex-1 w-full">
                     <Select 
                       label={idx === 0 ? "By-Product" : ""}
-                      options={masters.bp.map(p => ({ label: p.productName, value: p.productCode }))}
+                      options={[].map((p: any) => ({ label: p.productName, value: p.productCode }))}
                       value={item.code}
                       onChange={e => {
                         const newBp = [...bpItems];

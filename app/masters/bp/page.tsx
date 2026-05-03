@@ -66,7 +66,7 @@ export default function BPMasterPage() {
       subtitle="Recovered outputs and residual stock positions."
       description="Manage secondary products like oil cake and husks."
       columns={columns}
-      data={masters.bp}
+      data={[]}
       formComponent={
         <MasterForm 
           type="BP" 

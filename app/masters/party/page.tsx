@@ -104,7 +104,7 @@ export default function PartyMasterPage() {
       subtitle="Comprehensive directory of registered customers and vendors."
       description="Manage all your business entities and their tax registration details in one place."
       columns={columns}
-      data={masters.bp}
+      data={masters.parties}
       formComponent={<PartyForm onSubmit={() => {}} onCancel={() => {}} />}
     />
   );

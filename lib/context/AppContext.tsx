@@ -26,7 +26,7 @@ interface AppContextType {
   masters: {
     rm: RMMaster[];
     fg: FGMaster[];
-    bp: BPMaster[];
+    parties: BPMaster[];
     gl: GLMaster[];
   };
   settings: AppSettings;
@@ -60,7 +60,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [masters, setMasters] = useState({
     rm: [],
     fg: [],
-    bp: [],
+    parties: [],
     gl: [],
   });
   
@@ -105,13 +105,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!settings.appsScriptUrl) return;
     setIsLoading(true);
     try {
-      const [rm, fg, bp, gl] = await Promise.all([
+      const [rm, fg, parties, gl] = await Promise.all([
         fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_RM_MASTER),
         fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_FG_MASTER),
         fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_BP_MASTER),
         fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_GL_MASTER),
       ]);
-      setMasters({ rm, fg, bp, gl });
+      setMasters({ rm, fg, parties, gl });
     } catch (error) {
       console.error('Failed to fetch masters:', error);
       // Don't show toast on initial load error if not logged in
