@@ -44,7 +44,7 @@ export const PurchaseForm = () => {
     setItems(newItems);
   };
 
-  const selectedVendor = masters.party.find(p => p.name === formData.vendorName);
+  const selectedVendor = masters.bp.find(p => p.bpName === formData.vendorName);
   
   const totals = useMemo(() => {
     const t = { taxable: 0, vat: 0, nonTaxable: 0, capTaxable: 0, capVat: 0, grandTotal: 0 };
@@ -124,7 +124,7 @@ export const PurchaseForm = () => {
             <div className="md:col-span-2 lg:col-span-2">
               <Select 
                 label="Vendor / Supplier" 
-                options={masters.party.filter(p => p.type === 'Vendor').map(v => ({ label: v.name, value: v.name }))}
+                options={masters.bp.filter(p => p.type === 'Vendor').map(v => ({ label: v.bpName, value: v.bpName }))}
                 value={formData.vendorName}
                 onChange={e => setFormData({ ...formData, vendorName: e.target.value })}
                 required

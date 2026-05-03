@@ -42,7 +42,7 @@ export const SalesForm = () => {
     setItems(newItems);
   };
 
-  const selectedCustomer = masters.party.find(p => p.name === formData.customerName);
+  const selectedCustomer = masters.bp.find(p => p.bpName === formData.customerName);
   
   const totals = useMemo(() => {
     const t = { taxable: 0, vat: 0, nonTaxable: 0, grandTotal: 0, grossProfit: 0, gpPercent: 0 };
@@ -126,7 +126,7 @@ export const SalesForm = () => {
             <div className="md:col-span-2 lg:col-span-3">
               <Select 
                 label="Customer / Client" 
-                options={masters.party.filter(p => p.type === 'Customer').map(v => ({ label: v.name, value: v.name }))}
+                options={masters.bp.filter(p => p.type === 'Customer').map(v => ({ label: v.bpName, value: v.bpName }))}
                 value={formData.customerName}
                 onChange={e => setFormData({ ...formData, customerName: e.target.value })}
                 required
