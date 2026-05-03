@@ -8,7 +8,7 @@ function cn(...inputs: ClassValue[]) {
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'ghost' | 'outline';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'icon';
   isLoading?: boolean;
 }
 
@@ -34,6 +34,7 @@ export const Button = ({
     sm: 'px-3 py-1.5 text-xs',
     md: 'px-4 py-2.5 text-sm font-medium',
     lg: 'px-5 py-3 text-sm font-semibold',
+    icon: 'p-2',
   };
 
   return (
