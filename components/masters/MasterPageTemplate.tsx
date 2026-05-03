@@ -9,13 +9,21 @@ import { Modal } from '@/components/ui/Modal';
 import { Plus, Edit2, Trash2, Search, Filter, Download } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 
+import { MetricCard } from '@/components/ui/MetricCard';
+
 interface MasterPageTemplateProps {
   title: string;
   subtitle?: string;
-  description: string;
+  description?: string;
   columns: any[];
   data: any[];
   formComponent: React.ReactNode;
+  stats?: {
+    label: string;
+    value: string;
+    icon: any;
+    trend?: number;
+  }[];
 }
 
 export const MasterPageTemplate = ({
@@ -24,7 +32,8 @@ export const MasterPageTemplate = ({
   description,
   columns,
   data,
-  formComponent
+  formComponent,
+  stats
 }: MasterPageTemplateProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -71,6 +80,19 @@ export const MasterPageTemplate = ({
       />
 
       <div className="space-y-6">
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {stats.map((s, i) => (
+              <MetricCard 
+                key={i}
+                title={s.label}
+                value={s.value}
+                icon={s.icon}
+                trend={s.trend}
+              />
+            ))}
+          </div>
+        )}
         <DataTable 
           columns={tableColumns} 
           data={data} 
