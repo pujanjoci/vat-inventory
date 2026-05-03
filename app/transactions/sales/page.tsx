@@ -10,7 +10,7 @@ export default function SalesEntryPage() {
     <AppLayout>
       <PageHeader 
         title="Sales Entry" 
-        description="Issue tax invoices and record sales of finished goods and byproducts."
+        subtitle="Issue tax invoices and record sales of finished goods and byproducts."
       />
       <SalesForm />
     </AppLayout>

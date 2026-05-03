@@ -44,6 +44,7 @@ export const ACTIONS = {
   
   SAVE_PURCHASE: 'savePurchase',
   SAVE_SALE: 'saveSale',
+  SAVE_PRODUCTION: 'saveProduction',
   SAVE_MASTER: 'addMasterEntry',
   CREATE_USER: 'createUser',
   UPDATE_USER: 'updateUser'

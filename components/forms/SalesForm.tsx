@@ -251,7 +251,7 @@ export const SalesForm = () => {
                 <div className="space-y-2">
                   <p className="text-[var(--color-text-muted)] uppercase tracking-wider font-bold">Bill To</p>
                   <p className="font-bold text-sm text-[var(--color-text-primary)]">{formData.customerName || '---'}</p>
-                  <p className="font-mono text-[var(--color-text-secondary)]">PAN: {selectedCustomer?.pan || '---'}</p>
+                  <p className="font-mono text-[var(--color-text-secondary)]">PAN: {selectedCustomer?.bpCode || '---'}</p>
                 </div>
                 <div className="space-y-2 text-right">
                   <p className="text-[var(--color-text-muted)] uppercase tracking-wider font-bold">Invoice Details</p>

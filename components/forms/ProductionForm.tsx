@@ -359,7 +359,7 @@ export const ProductionForm = () => {
             <div className="pt-2 border-t border-slate-100">
                <Button
               type="submit"
-              variant="brand"
+              variant="primary"
               className="w-full h-12 shadow-xl shadow-indigo-100"
               size="lg"
               disabled={!formData.orderNo || isSubmitting}

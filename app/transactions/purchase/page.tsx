@@ -10,7 +10,7 @@ export default function PurchaseEntryPage() {
     <AppLayout>
       <PageHeader 
         title="Purchase Entry" 
-        description="Record raw material and asset purchases into your books."
+        subtitle="Record raw material and asset purchases into your books."
       />
       <PurchaseForm />
     </AppLayout>

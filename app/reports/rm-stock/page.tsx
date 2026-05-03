@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { DataTable } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Download, Filter, Package, TrendingUp, Archive, Printer } from 'lucide-react';
+import { Download, Filter, Package, TrendingUp, Archive, Printer, Info } from 'lucide-react';
 import { formatCurrency, formatQty } from '@/lib/format';
 
 export default function RMStockReportPage() {

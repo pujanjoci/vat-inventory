@@ -10,7 +10,7 @@ export default function ProductionEntryPage() {
     <AppLayout>
       <PageHeader 
         title="Production Journal" 
-        description="Record oil milling batches, consumption of raw materials, and output of oil and pina."
+        subtitle="Record oil milling batches, consumption of raw materials, and output of finished goods."
       />
       <ProductionForm />
     </AppLayout>

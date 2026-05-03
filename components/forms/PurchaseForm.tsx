@@ -238,7 +238,7 @@ export const PurchaseForm = () => {
                   <span className="text-[var(--color-text-secondary)] text-xs font-medium uppercase tracking-wider">Vendor</span>
                   <div className="text-right">
                     <p className="font-bold text-[var(--color-text-primary)] text-sm">{formData.vendorName || '---'}</p>
-                    {selectedVendor && <p className="text-[10px] text-[var(--color-text-muted)] font-mono mt-0.5">PAN: {selectedVendor.pan}</p>}
+                    {selectedVendor && <p className="text-[10px] text-[var(--color-text-muted)] font-mono mt-0.5">PAN: {selectedVendor.bpCode}</p>}
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
