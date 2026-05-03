@@ -14,7 +14,7 @@ import { formatCurrency } from '@/lib/format';
 export default function VATSummaryPage() {
   const [dateRange, setDateRange] = useState({ from: '2024-04-01', to: '2024-04-30' });
 
-  const columns = [
+  const columns: any[] = [
     { 
       header: 'Taxable Party', 
       accessor: 'name',

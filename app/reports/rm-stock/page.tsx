@@ -13,7 +13,7 @@ import { formatCurrency, formatQty } from '@/lib/format';
 export default function RMStockReportPage() {
   const [dateRange, setDateRange] = useState({ from: '2024-04-01', to: '2024-04-30' });
 
-  const columns = [
+  const columns: any[] = [
     { 
       header: 'Raw Material', 
       accessor: 'name',
