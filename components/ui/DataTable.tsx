@@ -23,6 +23,7 @@ interface DataTableProps<T> {
   onSearch?: (query: string) => void;
   emptyMessage?: string;
   footerRows?: React.ReactNode;
+  searchPlaceholder?: string;
 }
 
 export function DataTable<T>({ 
@@ -32,6 +33,7 @@ export function DataTable<T>({
   onExport, 
   onSearch,
   emptyMessage = "No records found",
+  searchPlaceholder = "Search...",
   footerRows
 }: DataTableProps<T>) {
   return (
@@ -43,7 +45,7 @@ export function DataTable<T>({
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--color-text-muted)]" />
             <input 
               className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-[var(--color-border)] bg-white focus:outline-none focus:border-[var(--color-accent)] transition-colors" 
-              placeholder="Search..." 
+              placeholder={searchPlaceholder} 
               onChange={(e) => onSearch?.(e.target.value)}
             />
           </div>
