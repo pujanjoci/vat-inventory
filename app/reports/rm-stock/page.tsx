@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
@@ -9,78 +9,75 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Download, Filter, Package, TrendingUp, Archive, Printer, Info } from 'lucide-react';
 import { formatCurrency, formatQty } from '@/lib/format';
+import { exportToCSV } from '@/lib/export';
+import { useAppContext } from '@/lib/context/AppContext';
 
 export default function RMStockReportPage() {
-  const [dateRange, setDateRange] = useState({ from: '2024-04-01', to: '2024-04-30' });
+  const { masters, isLoading, user, settings } = useAppContext();
+  const [dateRange, setDateRange] = useState({ 
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0], 
+    to: new Date().toISOString().split('T')[0] 
+  });
 
   const columns: any[] = [
     { 
       header: 'Raw Material', 
-      accessor: 'name',
-      render: (i: any) => <span className="font-bold text-[var(--color-text-primary)]">{i.name}</span>
+      accessor: 'productName',
+      render: (i: any) => (
+        <div>
+          <p className="font-bold text-[var(--color-text-primary)]">{i['RM Product Name']}</p>
+          <p className="text-[10px] text-[var(--color-text-muted)] font-mono uppercase">{i['RM Product Code']}</p>
+        </div>
+      )
     },
     { 
-      header: 'Op. Qty', 
-      accessor: 'opQty', 
+      header: 'Current Stock', 
+      accessor: 'openingQty', 
       align: 'right' as const,
-      render: (i: any) => <span className="font-mono">{formatQty(i.opQty)}</span>
+      render: (i: any) => <span className="font-mono font-bold text-[var(--color-text-primary)]">{formatQty(i['Opening Balance (Qty)'])} {i.UOM}</span>
     },
     { 
-      header: 'Op. Value', 
-      accessor: 'opAmt', 
+      header: 'Unit Rate (Avg)', 
+      accessor: 'rate', 
       align: 'right' as const, 
-      render: (i: any) => <span className="font-mono text-[var(--color-text-muted)]">Rs. {formatCurrency(i.opAmt)}</span> 
+      render: (i: any) => {
+        const qty = parseFloat(i['Opening Balance (Qty)']) || 0;
+        const amt = parseFloat(i['Opening Balance (Rs.)']) || 0;
+        const rate = qty > 0 ? amt / qty : 0;
+        return <span className="font-mono text-xs">Rs. {rate.toFixed(2)}</span>;
+      }
     },
     { 
-      header: 'Purchased', 
-      accessor: 'purQty', 
-      align: 'right' as const,
-      render: (i: any) => <span className="font-mono text-blue-600 font-medium">+{formatQty(i.purQty)}</span>
-    },
-    { 
-      header: 'Consumed', 
-      accessor: 'consQty', 
-      align: 'right' as const,
-      render: (i: any) => <span className="font-mono text-rose-600 font-medium">-{formatQty(i.consQty)}</span>
-    },
-    { 
-      header: 'Closing Qty', 
-      accessor: 'clQty', 
-      align: 'right' as const,
-      render: (i: any) => <span className="font-mono font-bold text-[var(--color-text-primary)]">{formatQty(i.clQty)}</span>
-    },
-    { 
-      header: 'Unit Rate', 
-      accessor: 'clRate', 
+      header: 'Valuation', 
+      accessor: 'openingAmount', 
       align: 'right' as const, 
-      render: (i: any) => <span className="font-mono text-xs">Rs. {i.clRate.toFixed(2)}</span> 
-    },
-    { 
-      header: 'Closing Value', 
-      accessor: 'clAmt', 
-      align: 'right' as const, 
-      render: (i: any) => <span className="font-mono font-bold text-[var(--color-accent)]">Rs. {formatCurrency(i.clAmt)}</span> 
+      render: (i: any) => <span className="font-mono font-bold text-[var(--color-accent)]">Rs. {formatCurrency(i['Opening Balance (Rs.)'])}</span> 
     },
   ];
 
-  const mockData = [
-    { name: 'Yellow Mustard Seed', opQty: 1200, opAmt: 144000, purQty: 5000, purAmt: 600000, consQty: 4500, clQty: 1700, clRate: 120, clAmt: 204000 },
-    { name: 'Black Rapeseed (Tori)', opQty: 800, opAmt: 96000, purQty: 2000, purAmt: 240000, consQty: 1500, clQty: 1300, clRate: 120, clAmt: 156000 },
-    { name: 'Brown Mustard (Rayo)', opQty: 450, opAmt: 58500, purQty: 1000, purAmt: 130000, consQty: 800, clQty: 650, clRate: 130, clAmt: 84500 },
-  ];
+  const stats = useMemo(() => {
+    const totalUnits = (masters.rm as any[]).reduce((sum: number, i: any) => sum + (parseFloat(i['Opening Balance (Qty)']) || 0), 0);
+    const totalValuation = (masters.rm as any[]).reduce((sum: number, i: any) => sum + (parseFloat(i['Opening Balance (Rs.)']) || 0), 0);
+    return { totalUnits, totalValuation };
+  }, [masters.rm]);
 
   return (
     <AppLayout>
       <PageHeader 
         title="Raw Material Inventory" 
-        subtitle="Stock Register & Movement Ledger for raw materials."
+        subtitle="Current stock levels and valuation based on latest transactions."
         breadcrumbs={[{ label: 'Reports' }, { label: 'Inventory' }, { label: 'RM Stock' }]}
         actions={
           <div className="flex gap-2">
             <Button variant="outline" size="sm">
               <Printer className="w-3.5 h-3.5 mr-2" /> Print
             </Button>
-            <Button variant="primary" size="sm">
+            <Button variant="primary" size="sm" onClick={() => exportToCSV(masters.rm as any[], 'RM_Stock_Report', {
+              username: user?.Username,
+              companyName: user?.Role === 'Admin' ? 'All Companies' : (user?.CompanyName || settings.companyName),
+              contact: user?.ContactNo || settings.contactNo,
+              date: new Date().toLocaleDateString()
+            })}>
               <Download className="w-3.5 h-3.5 mr-2" /> Export Excel
             </Button>
           </div>
@@ -96,7 +93,7 @@ export default function RMStockReportPage() {
               </div>
               <div>
                 <p className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Total Units</p>
-                <p className="text-xl font-bold font-mono">3,650.00 <span className="text-xs font-normal">KG</span></p>
+                <p className="text-xl font-bold font-mono">{formatQty(stats.totalUnits)} <span className="text-xs font-normal">UNIT</span></p>
               </div>
             </div>
           </Card>
@@ -106,8 +103,8 @@ export default function RMStockReportPage() {
                 <TrendingUp className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Net Movement</p>
-                <p className="text-xl font-bold font-mono text-emerald-600">+1,200.00 <span className="text-xs font-normal">KG</span></p>
+                <p className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Unique Items</p>
+                <p className="text-xl font-bold font-mono text-emerald-600">{masters.rm.length}</p>
               </div>
             </div>
           </Card>
@@ -118,37 +115,16 @@ export default function RMStockReportPage() {
               </div>
               <div>
                 <p className="text-[10px] font-bold text-white/70 uppercase tracking-wider">Stock Valuation</p>
-                <p className="text-xl font-bold font-mono">Rs. {formatCurrency(444500)}</p>
+                <p className="text-xl font-bold font-mono">Rs. {formatCurrency(stats.totalValuation)}</p>
               </div>
             </div>
           </Card>
         </div>
 
-        <Card title="Inventory Filters">
-          <div className="flex flex-col md:flex-row items-end gap-5">
-            <div className="flex-1 grid grid-cols-2 gap-4">
-              <Input 
-                label="From Date" 
-                type="date" 
-                value={dateRange.from} 
-                onChange={e => setDateRange({ ...dateRange, from: e.target.value })} 
-              />
-              <Input 
-                label="To Date" 
-                type="date" 
-                value={dateRange.to} 
-                onChange={e => setDateRange({ ...dateRange, to: e.target.value })} 
-              />
-            </div>
-            <Button variant="primary" className="h-11 px-8 shadow-md">
-              <Filter className="w-4 h-4 mr-2" /> Generate Report
-            </Button>
-          </div>
-        </Card>
-
         <DataTable 
           columns={columns} 
-          data={mockData} 
+          data={masters.rm as any[]} 
+          isLoading={isLoading}
           searchPlaceholder="Search materials..."
         />
         
@@ -156,12 +132,9 @@ export default function RMStockReportPage() {
            <div className="flex items-center gap-2">
               <Info className="h-4 w-4 text-blue-500" />
               <p className="text-[10px] text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">
-                Valuation method: Weighted Average Costing (WAC)
+                Note: Valuation is calculated based on Weighted Average Costing (WAC) recorded in master balance.
               </p>
            </div>
-           <p className="text-xs font-bold text-[var(--color-text-primary)]">
-             LAST SYNC: 2 mins ago
-           </p>
         </div>
       </div>
     </AppLayout>

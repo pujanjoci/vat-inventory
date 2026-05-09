@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Edit2, Save, X, Lock, CheckCircle, PieChart, Users, Zap, Fuel, Settings2, Info } from 'lucide-react';
 import { NEPALI_MONTHS } from '@/lib/constants';
+import { getFiscalYear } from '@/lib/calculations';
 import { formatCurrency, formatQty } from '@/lib/format';
 
 export default function CostingPage() {
@@ -17,7 +18,7 @@ export default function CostingPage() {
   const mockData = NEPALI_MONTHS.slice(0, 6).map((month, idx) => ({
     id: idx.toString(),
     month,
-    year: '2080/81',
+    year: `FY ${getFiscalYear()}`,
     status: idx === 5 ? 'PRELIMINARY' : 'FINAL',
     output: 12000 + (idx * 2000),
     workers: 5,

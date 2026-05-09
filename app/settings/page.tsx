@@ -89,6 +89,33 @@ export default function SettingsPage() {
                       onChange={e => setLocalSettings({...localSettings, appsScriptUrl: e.target.value})}
                       className="bg-white"
                     />
+                    
+                    <div className="mt-4 p-4 bg-white border border-slate-200 rounded-xl">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-xs font-bold text-[var(--color-text-primary)]">Spreadsheet Health</p>
+                          <p className="text-[10px] text-[var(--color-text-muted)] mt-0.5">Ensure your Google Sheet headers match the system configuration.</p>
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-[var(--color-accent)] border-[var(--color-accent)] hover:bg-[var(--color-accent-light)]"
+                          onClick={async () => {
+                            if (!localSettings.appsScriptUrl) return alert('Please enter Apps Script URL first');
+                            try {
+                              const { postToGAS, ACTIONS } = await import('@/lib/api');
+                              await postToGAS(localSettings.appsScriptUrl, 'syncHeaders', {});
+                              alert('Spreadsheet headers synchronized successfully!');
+                            } catch (err: any) {
+                              alert('Failed to sync: ' + err.message);
+                            }
+                          }}
+                        >
+                          <Database className="w-3.5 h-3.5 mr-2" /> Sync Structure
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

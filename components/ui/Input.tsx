@@ -24,21 +24,21 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </label>
         )}
         <div className="relative">
-          {icon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">
-              {icon}
-            </div>
-          )}
           <input
             ref={ref}
             className={cn(
-              'premium-input',
-              icon && 'pl-10',
+              'premium-input w-full',
+              icon && 'pr-11',
               error && 'border-[var(--color-danger)] focus:ring-[var(--color-danger-light)] focus:border-[var(--color-danger)]',
               className
             )}
             {...props}
           />
+          {icon && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] pointer-events-none">
+              {icon}
+            </div>
+          )}
         </div>
         {error && (
           <p className="mt-1 text-xs text-[var(--color-danger)]">{error}</p>

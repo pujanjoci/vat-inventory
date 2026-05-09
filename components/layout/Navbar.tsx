@@ -5,6 +5,7 @@ import { Bell, Search, User, Menu } from 'lucide-react';
 import { useAppContext } from '@/lib/context/AppContext';
 import { usePathname } from 'next/navigation';
 import { Badge } from '@/components/ui/Badge';
+import { getFiscalYear } from '@/lib/calculations';
 
 export const Navbar = () => {
   const { user } = useAppContext();
@@ -45,7 +46,7 @@ export const Navbar = () => {
         {/* Fiscal Year Selector */}
         <div className="hidden sm:block">
           <Badge variant="brand" className="px-3 py-1 bg-[var(--color-accent-light)] text-[var(--color-accent)] border border-indigo-100 shadow-sm">
-            FY 2081-82
+            FY {getFiscalYear()}
           </Badge>
         </div>
 

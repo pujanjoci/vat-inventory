@@ -33,7 +33,10 @@ export const Sidebar = () => {
       title: 'Management',
       items: [
         { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-        ...(user?.Role === 'Admin' ? [{ label: 'User Management', href: '/admin/users', icon: ShieldCheck }] : []),
+        ...(user?.Role === 'Admin' ? [
+          { label: 'User Management', href: '/admin/users', icon: ShieldCheck },
+          { label: 'Audit Log', href: '/admin/audit', icon: FileText }
+        ] : []),
       ]
     },
     {
@@ -51,21 +54,30 @@ export const Sidebar = () => {
         { label: 'Finished Goods', href: '/masters/fg', icon: Database },
         { label: 'By-products', href: '/masters/bp', icon: Database },
         { label: 'Party Master', href: '/masters/party', icon: Database },
+        { label: 'GL Master', href: '/masters/gl', icon: Database },
       ]
     },
     {
       title: 'Financials',
       items: [
+        { label: 'AR/AP Ledger', href: '/masters/arap', icon: FileText },
         { label: 'VAT Summary', href: '/reports/vat-summary', icon: FileText },
         { label: 'Inventory Costing', href: '/costing', icon: PieChart },
       ]
     },
     {
-      title: 'System',
+      title: 'Reports',
       items: [
-        { label: 'Preferences', href: '/settings', icon: Settings },
+        { label: 'RM Stock Report', href: '/reports/rm-stock', icon: PieChart },
+        { label: 'FG Stock Report', href: '/reports/fg-stock', icon: PieChart },
       ]
-    }
+    },
+    // {
+    //   title: 'System',
+    //   items: [
+    //     { label: 'Preferences', href: '/settings', icon: Settings },
+    //   ]
+    // }
   ];
 
   return (
@@ -83,7 +95,9 @@ export const Sidebar = () => {
         {!collapsed && (
           <div className="flex flex-col overflow-hidden">
             <span className="text-[var(--color-text-primary)] font-bold text-sm tracking-tight uppercase whitespace-nowrap font-display">Vat & Inventory</span>
-            <span className="text-[9px] text-[var(--color-text-muted)] font-bold tracking-[0.2em] uppercase truncate mt-0.5">{user?.CompanyName || 'Ganesh Tel Mill'}</span>
+            <span className="text-[9px] text-[var(--color-text-muted)] font-bold tracking-[0.2em] uppercase truncate mt-0.5">
+              {user?.Role === 'Admin' ? 'System Administrator' : (user?.CompanyName || 'Ganesh Tel Mill')}
+            </span>
           </div>
         )}
       </div>

@@ -9,13 +9,13 @@ import { Badge } from '@/components/ui/Badge';
 import { Plus, Trash2, Receipt, TrendingUp, Calendar as CalendarIcon, User, Search, Info, Loader2 } from 'lucide-react';
 import { useAppContext } from '@/lib/context/AppContext';
 import { postToGAS, ACTIONS } from '@/lib/api';
-import { calculateSales, getNepaliMonth } from '@/lib/calculations';
+import { calculateSales, getNepaliMonth, getFiscalYear } from '@/lib/calculations';
 import { formatCurrency, formatQty, formatRate, formatPercent } from '@/lib/format';
 
 const BLANK_ITEM = { productCode: '', qty: 0, rate: 0, isTaxable: 'Yes' };
 
 export const SalesForm = () => {
-  const { masters, settings, showToast } = useAppContext();
+  const { masters, settings, user, showToast } = useAppContext();
   const [items, setItems] = useState([{ ...BLANK_ITEM }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -85,12 +85,13 @@ export const SalesForm = () => {
     try {
       const payload = {
         ...formData,
+        companyName: user?.CompanyName || settings.companyName,
         fiscalMonth: getNepaliMonth(formData.date),
         items: validItems,
         totals,
         vatRate: settings.vatRate,
       };
-      await postToGAS(settings.appsScriptUrl, ACTIONS.SAVE_SALE, payload);
+      await postToGAS(settings.appsScriptUrl, ACTIONS.SAVE_SALE, payload, { role: user?.Role || 'Company' });
       showToast('Sales invoice generated and posted successfully.', 'success');
       resetForm();
     } catch (err: any) {
@@ -112,12 +113,11 @@ export const SalesForm = () => {
               value={formData.date} 
               onChange={e => setFormData({ ...formData, date: e.target.value })} 
               required 
-              icon={<CalendarIcon className="h-4 w-4" />}
             />
-            <Input label="Nepali Month" value={getNepaliMonth(formData.date)} disabled icon={<TrendingUp className="h-4 w-4" />} />
+            <Input label="Nepali Month" value={getNepaliMonth(formData.date)} disabled />
             <Input 
               label="Invoice Number" 
-              placeholder="e.g. TAX-001"
+              placeholder={`e.g. TAX-${getFiscalYear(formData.date)}-001`}
               value={formData.billNo} 
               onChange={e => setFormData({ ...formData, billNo: e.target.value })} 
               required 

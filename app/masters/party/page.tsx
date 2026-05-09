@@ -2,97 +2,105 @@
 
 import React from 'react';
 import { MasterPageTemplate } from '@/components/masters/MasterPageTemplate';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
-import { Button } from '@/components/ui/Button';
+import { MasterForm } from '@/components/forms/MasterForm';
 import { useAppContext } from '@/lib/context/AppContext';
 import { Badge } from '@/components/ui/Badge';
-import { formatCurrency } from '@/lib/format';
-import { User, ShieldCheck, Phone, Mail, Fingerprint, Building, Landmark } from 'lucide-react';
-
-const PartyForm = ({ onSubmit, onCancel }: { onSubmit: (data: any) => void; onCancel: () => void }) => {
-  return (
-    <form onSubmit={(e) => {
-      e.preventDefault();
-      const formData = new FormData(e.currentTarget);
-      onSubmit(Object.fromEntries(formData));
-    }} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div className="md:col-span-2">
-           <Input label="Legal Name of Entity" name="bpName" placeholder="e.g. ABC Trading Pvt. Ltd." required icon={<Building className="h-4 w-4" />} />
-        </div>
-        <Select 
-          label="Party Relationship Type" 
-          name="type" 
-          options={[
-            { label: 'Customer (Buyer)', value: 'Customer' },
-            { label: 'Vendor (Supplier)', value: 'Vendor' }
-          ]} 
-          required 
-        />
-        <Input label="VAT / PAN Registration No" name="bpCode" placeholder="9-digit numeric ID" required icon={<Fingerprint className="h-4 w-4" />} />
-        <Input label="Primary Phone" name="phone" placeholder="+977-XXXXXXXXXX" icon={<Phone className="h-4 w-4" />} />
-        <Input label="Email Address" name="email" type="email" placeholder="contact@entity.com" icon={<Mail className="h-4 w-4" />} />
-        <div className="md:col-span-2">
-          <Input label="Address" name="address" placeholder="Location details" icon={<Landmark className="h-4 w-4" />} />
-        </div>
-      </div>
-      <div className="flex items-center justify-end gap-3 pt-6 border-t border-[var(--color-border)]">
-        <Button variant="ghost" type="button" onClick={onCancel}>Discard Changes</Button>
-        <Button variant="primary" type="submit" className="shadow-lg">Create Registered Party</Button>
-      </div>
-    </form>
-  );
-};
+import { User, Phone, Mail } from 'lucide-react';
+import { postToGAS, ACTIONS } from '@/lib/api';
 
 export default function PartyMasterPage() {
-  const { masters } = useAppContext();
+  const { masters, settings, user, refreshMasters, showToast } = useAppContext();
+
+  const handleAddMaster = async (data: any) => {
+    if (!settings.appsScriptUrl) { showToast('Apps Script URL not configured', 'error'); return; }
+    try {
+      const payload = { ...data, CompanyName: user?.CompanyName || settings.companyName };
+      await postToGAS(settings.appsScriptUrl, ACTIONS.SAVE_MASTER, payload, { sheetName: 'BP_Master', role: user?.Role || 'Company' });
+      showToast('Party registered successfully', 'success');
+      refreshMasters();
+    } catch (error: any) {
+      showToast(error.message || 'Failed to register party', 'error');
+    }
+  };
+
+  const handleEditMaster = async (data: any, originalItem: any) => {
+    if (!settings.appsScriptUrl) return;
+    try {
+      const payload = {
+        ...data,
+        CompanyName: user?.CompanyName || settings.companyName,
+        _matchKey: 'BPName',
+        _matchValue: originalItem.BPName,
+        _companyName: user?.CompanyName || settings.companyName,
+      };
+      await postToGAS(settings.appsScriptUrl, ACTIONS.UPDATE_MASTER, payload, { sheetName: 'BP_Master', role: user?.Role || 'Company' });
+      showToast('Party updated successfully', 'success');
+      refreshMasters();
+    } catch (error: any) {
+      showToast(error.message || 'Failed to update party', 'error');
+    }
+  };
+
+  const handleDelete = async (item: any) => {
+    if (!settings.appsScriptUrl) return;
+    try {
+      await postToGAS(settings.appsScriptUrl, ACTIONS.DELETE_MASTER, {
+        _matchKey: 'BPName',
+        _matchValue: item.BPName,
+        _companyName: user?.CompanyName || settings.companyName,
+      }, { sheetName: 'BP_Master', role: user?.Role || 'Company' });
+      showToast('Party deleted successfully', 'success');
+      refreshMasters();
+    } catch (error: any) {
+      showToast(error.message || 'Failed to delete party', 'error');
+    }
+  };
 
   const columns = [
     { 
       header: 'Entity Name', 
-      accessor: 'bpName',
+      accessor: 'BPName',
       render: (item: any) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-[var(--color-surface-raised)] flex items-center justify-center border border-[var(--color-border)]">
             <User className="h-4 w-4 text-[var(--color-text-secondary)]" />
           </div>
           <div>
-            <p className="font-bold text-[var(--color-text-primary)]">{item.bpName}</p>
-            <p className="text-[10px] text-[var(--color-text-muted)] font-mono uppercase">ID: {item.bpCode}</p>
+            <p className="font-bold text-[var(--color-text-primary)]">{item.BPName}</p>
+            <p className="text-[10px] text-[var(--color-text-muted)] font-mono uppercase">ID: {item.BPCode}</p>
           </div>
         </div>
       )
     },
     { 
       header: 'Relationship', 
-      accessor: 'type',
+      accessor: 'Type',
       render: (item: any) => (
-        <Badge variant={item.type === 'Vendor' ? 'Vendor' : 'Taxable'}>
-          {item.type.toUpperCase()}
+        <Badge variant={item.Type === 'Vendor' ? 'Vendor' : 'Taxable'}>
+          {item.Type?.toUpperCase() || 'UNKNOWN'}
         </Badge>
       )
     },
     { 
       header: 'Contact Information', 
-      accessor: 'phone',
+      accessor: 'Phone',
       render: (item: any) => (
         <div className="space-y-0.5">
           <p className="text-xs text-[var(--color-text-secondary)] flex items-center gap-1.5">
-            <Phone className="h-3 w-3 text-[var(--color-text-muted)]" /> {item.phone || 'N/A'}
+            <Phone className="h-3 w-3 text-[var(--color-text-muted)]" /> {item.Phone || 'N/A'}
           </p>
           <p className="text-[10px] text-[var(--color-text-muted)] flex items-center gap-1.5">
-            <Mail className="h-3 w-3" /> {item.email || 'N/A'}
+            <Mail className="h-3 w-3" /> {item.Email || 'N/A'}
           </p>
         </div>
       )
     },
     { 
       header: 'Address', 
-      accessor: 'address',
+      accessor: 'Address',
       render: (item: any) => (
         <span className="text-xs text-[var(--color-text-secondary)]">
-          {item.address || '—'}
+          {item.Address || '—'}
         </span>
       )
     },
@@ -105,7 +113,16 @@ export default function PartyMasterPage() {
       description="Manage all your business entities and their tax registration details in one place."
       columns={columns}
       data={masters.parties}
-      formComponent={<PartyForm onSubmit={() => {}} onCancel={() => {}} />}
+      formComponent={(onClose) => <MasterForm type="Party" onSubmit={async (data) => { await handleAddMaster(data); onClose(); }} onCancel={onClose} />}
+      editFormComponent={(item, onClose) => (
+        <MasterForm 
+          type="Party" 
+          initialData={item}
+          onSubmit={async (data) => { await handleEditMaster(data, item); onClose(); }} 
+          onCancel={onClose} 
+        />
+      )}
+      onDelete={handleDelete}
     />
   );
 }

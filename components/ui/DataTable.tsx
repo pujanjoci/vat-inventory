@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -10,6 +10,7 @@ function cn(...inputs: ClassValue[]) {
 interface Column<T> {
   header: string;
   accessor: keyof T | ((row: T) => React.ReactNode);
+  render?: (row: T) => React.ReactNode;
   align?: 'left' | 'right' | 'center';
   className?: string;
 }
@@ -19,6 +20,7 @@ interface DataTableProps<T> {
   data: T[];
   title?: string;
   count?: number;
+  isLoading?: boolean;
   onExport?: () => void;
   onSearch?: (query: string) => void;
   emptyMessage?: string;
@@ -29,13 +31,33 @@ interface DataTableProps<T> {
 export function DataTable<T>({ 
   columns, 
   data, 
-  count, 
+  count,
+  isLoading,
   onExport, 
   onSearch,
   emptyMessage = "No records found",
   searchPlaceholder = "Search...",
   footerRows
 }: DataTableProps<T>) {
+  const [internalSearch, setInternalSearch] = useState('');
+
+  const handleSearch = (val: string) => {
+    setInternalSearch(val);
+    onSearch?.(val);
+  };
+
+  const displayData = useMemo(() => {
+    if (!internalSearch) return data;
+    const lowerQuery = internalSearch.toLowerCase();
+    return data.filter((row: any) => {
+      return Object.values(row).some(val => 
+        val !== null && val !== undefined && String(val).toLowerCase().includes(lowerQuery)
+      );
+    });
+  }, [data, internalSearch]);
+
+  const displayCount = count ?? displayData.length;
+
   return (
     <div className="rounded-xl border border-[var(--color-border)] overflow-hidden bg-white shadow-sm">
       {/* Table toolbar */}
@@ -46,12 +68,12 @@ export function DataTable<T>({
             <input 
               className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-[var(--color-border)] bg-white focus:outline-none focus:border-[var(--color-accent)] transition-colors" 
               placeholder={searchPlaceholder} 
-              onChange={(e) => onSearch?.(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
             />
           </div>
         </div>
         <div className="flex items-center gap-3 text-sm text-[var(--color-text-muted)] w-full sm:w-auto justify-between">
-          <span className="text-xs font-medium uppercase tracking-wider">{count ?? data.length} records</span>
+          <span className="text-xs font-medium uppercase tracking-wider">{displayCount} records</span>
           {onExport && (
             <button 
               onClick={onExport}
@@ -83,14 +105,24 @@ export function DataTable<T>({
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--color-border)]">
-            {data.length === 0 ? (
+            {isLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <tr key={`skel-${i}`}>
+                  {columns.map((_, ci) => (
+                    <td key={ci} className="px-4 py-4">
+                      <div className="h-4 bg-slate-100 rounded animate-pulse" style={{ width: `${60 + Math.random() * 30}%` }} />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : displayData.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="px-4 py-12 text-center text-[var(--color-text-muted)] italic">
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
-              data.map((row, rowIndex) => (
+              displayData.map((row, rowIndex) => (
                 <tr key={rowIndex} className="hover:bg-accent-light/30 transition-colors duration-100 group">
                   {columns.map((col, colIndex) => {
                     const content = typeof col.accessor === 'function' 
@@ -106,7 +138,11 @@ export function DataTable<T>({
                           col.className
                         )}
                       >
-                        {content}
+                        {col.render ? col.render(row) : (
+                          typeof col.accessor === 'function' 
+                            ? col.accessor(row) 
+                            : (row[col.accessor] as React.ReactNode)
+                        )}
                       </td>
                     );
                   })}
@@ -125,7 +161,7 @@ export function DataTable<T>({
       {/* Pagination Placeholder */}
       <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--color-border)] bg-[var(--color-surface-raised)]">
         <p className="text-xs text-[var(--color-text-muted)]">
-          Showing 1–{Math.min(data.length, 25)} of {count ?? data.length}
+          Showing 1–{Math.min(displayData.length, 25)} of {displayCount}
         </p>
         <div className="flex items-center gap-1">
           <button className="p-1.5 rounded-lg border border-[var(--color-border)] disabled:opacity-30 disabled:pointer-events-none hover:bg-white transition-colors" disabled>

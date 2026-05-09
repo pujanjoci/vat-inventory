@@ -33,6 +33,7 @@ import { formatCurrency } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
 import { useAppContext } from '@/lib/context/AppContext';
 import { fetchFromGAS, ACTIONS } from '@/lib/api';
+import { getFiscalYear } from '@/lib/calculations';
 
 const performanceData = [
   { month: 'Shrawan', sales: 450000, purchases: 380000, margin: 15 },
@@ -63,7 +64,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function DashboardPage() {
-  const { settings } = useAppContext();
+  const { settings, user } = useAppContext();
   const [stats, setStats] = React.useState<any>(null);
   const [mounted, setMounted] = React.useState(false);
 
@@ -72,14 +73,18 @@ export default function DashboardPage() {
     const loadStats = async () => {
       if (!settings.appsScriptUrl) return;
       try {
-        const data = await fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_DASHBOARD_STATS);
+        const params = {
+          role: user?.Role || 'Company',
+          companyName: user?.Role === 'Admin' ? '' : (user?.CompanyName || settings.companyName || '')
+        };
+        const data = await fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_DASHBOARD_STATS, params);
         setStats(data);
       } catch (err) {
         console.error('Failed to load dashboard stats:', err);
       }
     };
     loadStats();
-  }, [settings.appsScriptUrl]);
+  }, [settings.appsScriptUrl, user, settings.companyName]);
 
   const displayStats = stats || {
     totalPurchases: 0,
@@ -100,7 +105,7 @@ export default function DashboardPage() {
           <div className="flex gap-2">
             <Button variant="outline" size="sm">
               <Calendar className="w-3.5 h-3.5 mr-2" />
-              FY 2081-82
+              FY {getFiscalYear()}
             </Button>
             <Button variant="primary" size="sm">
               <Download className="w-3.5 h-3.5 mr-2" />
@@ -175,7 +180,7 @@ export default function DashboardPage() {
                   <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Current Liability</p>
                   <p className="text-3xl font-display font-bold text-[var(--color-danger)] leading-none">Rs. {formatCurrency(displayStats.vatPayable)}</p>
                 </div>
-                <Badge variant="PRELIMINARY">FY 2081</Badge>
+                <Badge variant="PRELIMINARY">FY {getFiscalYear()}</Badge>
               </div>
               
               <div className="space-y-4">

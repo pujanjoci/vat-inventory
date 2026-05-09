@@ -17,7 +17,7 @@ const BLANK_FG = { code: '', qty: 0 };
 const BLANK_BP = { code: '', qty: 0, nrv: 0 };
 
 export const ProductionForm = () => {
-  const { masters, settings, showToast } = useAppContext();
+  const { masters, settings, user, showToast } = useAppContext();
   
   const [rmItems, setRmItems] = useState([{ ...BLANK_RM }]);
   const [fgItems, setFgItems] = useState([{ ...BLANK_FG }]);
@@ -73,13 +73,14 @@ export const ProductionForm = () => {
     try {
       const payload = {
         ...formData,
+        companyName: user?.CompanyName || settings.companyName,
         fiscalMonth: getNepaliMonth(formData.date),
         rmItems: validRm,
         fgItems: validFg,
         bpItems: bpItems.filter(i => i.code && i.qty > 0),
         results,
       };
-      await postToGAS(settings.appsScriptUrl, ACTIONS.SAVE_PRODUCTION, payload);
+      await postToGAS(settings.appsScriptUrl, ACTIONS.SAVE_PRODUCTION, payload, { role: user?.Role || 'Company' });
       showToast('Production journal generated and posted successfully.', 'success');
       resetForm();
     } catch (err: any) {
@@ -101,9 +102,8 @@ export const ProductionForm = () => {
               value={formData.date} 
               onChange={e => setFormData({...formData, date: e.target.value})} 
               required 
-              icon={<CalendarIcon className="h-4 w-4" />}
             />
-            <Input label="Fiscal Month" value={getNepaliMonth(formData.date)} disabled icon={<Activity className="h-4 w-4" />} />
+            <Input label="Fiscal Month" value={getNepaliMonth(formData.date)} disabled />
             <Input 
               label="Batch / Order No" 
               value={formData.orderNo} 

@@ -26,8 +26,10 @@ interface AppContextType {
   masters: {
     rm: RMMaster[];
     fg: FGMaster[];
+    bp: any[];
     parties: BPMaster[];
     gl: GLMaster[];
+    arap: any[];
   };
   settings: AppSettings;
   isLoading: boolean;
@@ -60,8 +62,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [masters, setMasters] = useState({
     rm: [],
     fg: [],
+    bp: [],
     parties: [],
     gl: [],
+    arap: [],
   });
   
   const [settings, setSettings] = useState<AppSettings>(() => {
@@ -69,7 +73,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const saved = localStorage.getItem('ganesh_settings');
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Fallback to DEFAULT_SETTINGS (env var) if saved URL is empty
         if (!parsed.appsScriptUrl) parsed.appsScriptUrl = DEFAULT_SETTINGS.appsScriptUrl;
         return parsed;
       }
@@ -105,16 +108,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!settings.appsScriptUrl) return;
     setIsLoading(true);
     try {
-      const [rm, fg, parties, gl] = await Promise.all([
-        fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_RM_MASTER),
-        fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_FG_MASTER),
-        fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_BP_MASTER),
-        fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_GL_MASTER),
+      const params = {
+        role: user?.Role || 'Company',
+        companyName: user?.Role === 'Admin' ? '' : (user?.CompanyName || settings.companyName || '')
+      };
+
+      const [rm, fg, bp, parties, gl, arap] = await Promise.all([
+        fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_RM_MASTER, params),
+        fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_FG_MASTER, params),
+        fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_BP_MASTER, params), // This is By-Products Registry
+        fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_PARTIES, params), // This is Business Partners Registry
+        fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_GL_MASTER, params),
+        fetchFromGAS(settings.appsScriptUrl, ACTIONS.GET_ARAP, params),
       ]);
-      setMasters({ rm, fg, parties, gl });
+      
+      setMasters({ rm, fg, bp, parties, gl, arap });
     } catch (error) {
       console.error('Failed to fetch masters:', error);
-      // Don't show toast on initial load error if not logged in
       if (user) showToast('Connection failed. Please check your Apps Script URL.', 'error');
     } finally {
       setIsLoading(false);

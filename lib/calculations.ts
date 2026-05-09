@@ -2,6 +2,28 @@ import { PurchaseEntry, SalesEntry, ProductionEntry } from "./types";
 import { VAT_RATE, NEPALI_MONTHS } from "./constants";
 
 /**
+ * Calculates the Nepali Fiscal Year (e.g., "82-83") based on a date.
+ * The Nepali Fiscal year changes around mid-July (approx July 16).
+ */
+export const getFiscalYear = (dateInput?: string | Date): string => {
+  const d = dateInput ? new Date(dateInput) : new Date();
+  const year = d.getFullYear();
+  const month = d.getMonth(); // 0-indexed, July is 6
+  const date = d.getDate();
+
+  let startNepYear = year + 57;
+  // If before mid-July, it falls in the previous Nepali year's fiscal period
+  if (month < 6 || (month === 6 && date < 16)) {
+    startNepYear = year + 56;
+  }
+
+  const shortStart = startNepYear % 100;
+  const shortEnd = (shortStart + 1) % 100;
+
+  return `${shortStart}-${shortEnd}`;
+};
+
+/**
  * Maps a Gregorian date to a Nepali month name (approximate)
  */
 export const getNepaliMonth = (dateString: string): string => {
