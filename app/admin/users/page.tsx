@@ -49,7 +49,7 @@ export default function UserManagementPage() {
     CompanyName: '',
     PAN_No: '',
     ContactNo: '',
-    Status: 'Active' as 'Active' | 'Inactive',
+    Status: 'Active' as UserType['Status'],
     Role: 'Company' as 'Admin' | 'Company'
   });
 
@@ -92,7 +92,7 @@ export default function UserManagementPage() {
       CompanyName: u.CompanyName || '',
       PAN_No: u.PAN_No || '',
       ContactNo: u.ContactNo || '',
-      Status: u.Status,
+      Status: u.Status === 'Deactivated' ? 'Inactive' : u.Status,
       Role: u.Role
     });
     setIsEditing(true);
