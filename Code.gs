@@ -84,6 +84,7 @@ function doPost(e) {
       case 'saveProduction': result = saveProduction(body, role); break;
       case 'createUser': result = createUser(body); break;
       case 'updateUser': result = updateUser(body); break;
+      case 'deleteUser': result = deleteUser(body); break;
       case 'addMasterEntry': result = addMasterEntry(e.parameter.sheetName, body, role); break;
       case 'deleteMasterEntry': result = deleteMasterEntry(e.parameter.sheetName, body, role); break;
       case 'updateMasterEntry': result = updateMasterEntry(e.parameter.sheetName, body, role); break;
@@ -407,7 +408,7 @@ function loginUser(username, password, role, companyName, panNo) {
   });
 
   if (user) {
-    if (user.Status === "Deactivated") throw new Error("Account deactivated.");
+    if (user.Status === "Inactive" || user.Status === "Deactivated") throw new Error("Account is inactive / unsubscribed.");
     delete user.Password;
     return user;
   }
@@ -426,6 +427,69 @@ function hashPassword(password) {
     hash += bStr;
   }
   return hash;
+}
+
+/**
+ * User Management CRUD
+ */
+function createUser(body) {
+  const sheet = SS.getSheetByName("Users");
+  if (!sheet) throw new Error("Users sheet not found");
+  
+  // Check if username already exists
+  const users = getUsers();
+  if (users.some(u => u.Username.toLowerCase() === body.Username.toLowerCase())) {
+    throw new Error("Username already exists");
+  }
+  
+  const headers = SHEETS_CONFIG["Users"];
+  const rowData = {
+    ...body,
+    Password: hashPassword(body.Password || "password123"),
+    Status: body.Status || "Active"
+  };
+  
+  const row = headers.map(h => rowData[h] === undefined ? "" : rowData[h]);
+  sheet.appendRow(row);
+  return { success: true };
+}
+
+function updateUser(body) {
+  const sheet = SS.getSheetByName("Users");
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const userIdx = headers.indexOf("Username");
+  
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][userIdx]).toLowerCase() === String(body.Username).toLowerCase()) {
+      // Update fields provided in body
+      headers.forEach((h, colIdx) => {
+        if (body[h] !== undefined) {
+          let val = body[h];
+          if (h === "Password") val = hashPassword(val);
+          sheet.getRange(i + 1, colIdx + 1).setValue(val);
+        }
+      });
+      return { success: true };
+    }
+  }
+  throw new Error("User not found: " + body.Username);
+}
+
+function deleteUser(body) {
+  const sheet = SS.getSheetByName("Users");
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const userIdx = headers.indexOf("Username");
+  
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][userIdx]).toLowerCase() === String(body.Username).toLowerCase()) {
+      if (body.Username === "admin") throw new Error("Cannot delete system admin");
+      sheet.deleteRow(i + 1);
+      return { success: true };
+    }
+  }
+  throw new Error("User not found: " + body.Username);
 }
 
 function syncHeaders() {

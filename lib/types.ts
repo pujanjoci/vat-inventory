@@ -147,5 +147,5 @@ export interface User {
   CompanyName?: string;
   PAN_No?: string;
   ContactNo?: string;
-  Status: 'Active' | 'Deactivated';
+  Status: 'Active' | 'Inactive' | 'Deactivated';
 }

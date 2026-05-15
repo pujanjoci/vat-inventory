@@ -85,16 +85,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const login = (userData: User) => {
+  const login = useCallback((userData: User) => {
     setUser(userData);
     localStorage.setItem('ganesh_user', JSON.stringify(userData));
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem('ganesh_user');
     window.location.href = '/login';
-  };
+  }, []);
 
   const showToast = useCallback((message: string, type: Toast['type']) => {
     const id = Math.random().toString(36).substring(7);
@@ -142,6 +142,44 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       refreshMasters();
     }
   }, [settings.appsScriptUrl, refreshMasters, user]);
+
+  // Session timeout logic (30 minutes)
+  useEffect(() => {
+    if (!user) return;
+
+    let timeoutId: NodeJS.Timeout;
+
+    const resetTimer = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        logout();
+      }, 30 * 60 * 1000); // 30 minutes
+    };
+
+    resetTimer();
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    
+    // Throttle the event listeners to avoid performance issues
+    let throttleTimer = false;
+    const handleActivity = () => {
+      if (throttleTimer) return;
+      throttleTimer = true;
+      resetTimer();
+      setTimeout(() => { throttleTimer = false; }, 1000);
+    };
+
+    events.forEach(event => {
+      window.addEventListener(event, handleActivity, { passive: true });
+    });
+
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach(event => {
+        window.removeEventListener(event, handleActivity);
+      });
+    };
+  }, [user, logout]);
 
   return (
     <AppContext.Provider value={{

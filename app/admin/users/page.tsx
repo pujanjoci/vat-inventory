@@ -23,7 +23,8 @@ import {
   Eye, 
   EyeOff, 
   Edit3,
-  Edit2
+  Edit2,
+  Trash2
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 
@@ -32,6 +33,8 @@ export default function UserManagementPage() {
   const [users, setUsers] = useState<UserType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [updatingUsernames, setUpdatingUsernames] = useState<Set<string>>(new Set());
+  const [deletingUsernames, setDeletingUsernames] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
   
   // Modal States
@@ -46,19 +49,19 @@ export default function UserManagementPage() {
     CompanyName: '',
     PAN_No: '',
     ContactNo: '',
-    Status: 'Active' as 'Active' | 'Deactivated',
+    Status: 'Active' as 'Active' | 'Inactive',
     Role: 'Company' as 'Admin' | 'Company'
   });
 
-  const loadUsers = async () => {
-    setIsLoading(true);
+  const loadUsers = async (silent = false) => {
+    if (!silent) setIsLoading(true);
     try {
       const data = await fetchFromGAS(settings.appsScriptUrl, 'getUsers');
       setUsers(data);
     } catch (err: any) {
       showToast('Failed to load users: ' + err.message, 'error');
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   };
 
@@ -122,16 +125,50 @@ export default function UserManagementPage() {
   };
 
   const toggleStatus = async (username: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'Active' ? 'Deactivated' : 'Active';
+    const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
+    setUpdatingUsernames(prev => new Set(prev).add(username));
     try {
       await postToGAS(settings.appsScriptUrl, 'updateUser', {
         Username: username,
         Status: newStatus
       });
-      showToast(`User ${newStatus === 'Active' ? 'activated' : 'deactivated'}`, 'success');
-      loadUsers();
+      
+      // Optimistic Update: Update the local state immediately
+      setUsers(prev => prev.map(u => u.Username === username ? { ...u, Status: newStatus } : u));
+      
+      showToast(`User ${newStatus === 'Active' ? 'activated' : 'unsubscribed (inactive)'}`, 'success');
+      loadUsers(true);
     } catch (err: any) {
       showToast(err.message, 'error');
+    } finally {
+      setUpdatingUsernames(prev => {
+        const next = new Set(prev);
+        next.delete(username);
+        return next;
+      });
+    }
+  };
+
+  const handleDelete = async (username: string) => {
+    if (!window.confirm(`Are you sure you want to PERMANENTLY delete user "${username}"? This action cannot be undone.`)) return;
+    
+    setDeletingUsernames(prev => new Set(prev).add(username));
+    try {
+      await postToGAS(settings.appsScriptUrl, 'deleteUser', { Username: username });
+      
+      // Optimistic Update: Remove the user from the local state immediately
+      setUsers(prev => prev.filter(u => u.Username !== username));
+      
+      showToast(`User "${username}" has been deleted`, 'success');
+      loadUsers(true);
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    } finally {
+      setDeletingUsernames(prev => {
+        const next = new Set(prev);
+        next.delete(username);
+        return next;
+      });
     }
   };
 
@@ -249,15 +286,36 @@ export default function UserManagementPage() {
                           <Edit2 className="w-3.5 h-3.5" />
                         </Button>
                         {u.Username !== 'admin' && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="text-xs h-8"
-                            onClick={() => toggleStatus(u.Username, u.Status)}
-                          >
-                            {u.Status === 'Active' ? <XCircle className="w-3 h-3 mr-1" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
-                            {u.Status === 'Active' ? 'Deactivate' : 'Activate'}
-                          </Button>
+                          <>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className={`text-xs h-8 ${u.Status === 'Active' ? 'text-orange-600 hover:bg-orange-50' : 'text-emerald-600 hover:bg-emerald-50'}`}
+                              onClick={() => toggleStatus(u.Username, u.Status)}
+                              disabled={updatingUsernames.has(u.Username)}
+                            >
+                              {updatingUsernames.has(u.Username) ? (
+                                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                              ) : (
+                                u.Status === 'Active' ? <XCircle className="w-3 h-3 mr-1" /> : <CheckCircle2 className="w-3 h-3 mr-1" />
+                              )}
+                              {u.Status === 'Active' ? 'Unsubscribe' : 'Activate'}
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="icon"
+                              className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 border-red-100"
+                              title="Delete User"
+                              onClick={() => handleDelete(u.Username)}
+                              disabled={deletingUsernames.has(u.Username)}
+                            >
+                              {deletingUsernames.has(u.Username) ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-3.5 h-3.5" />
+                              )}
+                            </Button>
+                          </>
                         )}
                       </div>
                     </td>
@@ -340,7 +398,7 @@ export default function UserManagementPage() {
                       onChange={e => setFormData({...formData, Status: e.target.value as any})}
                     >
                       <option value="Active">Active</option>
-                      <option value="Deactivated">Deactivated</option>
+                      <option value="Inactive">Inactive</option>
                     </select>
                   </div>
                 </div>
