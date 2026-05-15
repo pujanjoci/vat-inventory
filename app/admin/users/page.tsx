@@ -190,7 +190,7 @@ export default function UserManagementPage() {
             <p className="text-slate-500 mt-1">Manage company access and portal users</p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={loadUsers} disabled={isLoading}>
+            <Button variant="outline" onClick={() => loadUsers()} disabled={isLoading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
             </Button>
             <Button variant="primary" onClick={() => { resetForm(); setShowModal(true); }}>
